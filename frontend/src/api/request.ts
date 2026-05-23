@@ -5,7 +5,7 @@ export interface ApiResponse<T> {
 }
 
 export interface RequestOptions {
-  method?: "GET" | "POST" | "PUT" | "DELETE";
+  method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   data?: object;
   loading?: boolean;
   auth?: boolean;
@@ -24,7 +24,7 @@ export function request<T>(url: string, options: RequestOptions = {}) {
   return new Promise<ApiResponse<T>>((resolve, reject) => {
     uni.request({
       url: `${API_BASE_URL}${url}`,
-      method: options.method || "GET",
+      method: (options.method || "GET") as any,
       data: options.data,
       header: {
         "Content-Type": "application/json",

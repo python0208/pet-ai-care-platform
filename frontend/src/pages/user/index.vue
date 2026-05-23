@@ -17,6 +17,10 @@
         <text>邮箱状态</text>
         <text class="muted">{{ user?.is_email_verified ? "已验证" : "当前 MVP 不使用邮箱验证" }}</text>
       </view>
+      <view class="menu-row tappable" @tap="goPets">
+        <text>我的宠物</text>
+        <text class="muted">查看档案</text>
+      </view>
       <view class="menu-row">
         <text>资料设置</text>
         <text class="muted">{{ genderLabel }}</text>
@@ -67,6 +71,10 @@ async function handleLogout() {
   }
   authStore.clearAuth();
   uni.switchTab({ url: "/pages/index/index" });
+}
+
+function goPets() {
+  uni.switchTab({ url: "/pages/pets/index" });
 }
 </script>
 
@@ -141,6 +149,10 @@ async function handleLogout() {
 
 .menu-row:last-child {
   border-bottom: 0;
+}
+
+.tappable {
+  cursor: pointer;
 }
 
 .muted {

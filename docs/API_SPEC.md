@@ -300,6 +300,8 @@ Content-Type: multipart/form-data
 
 ## 4. 宠物档案 API
 
+本组接口均需要 JWT 登录态。后端始终使用 `request.user` 过滤数据，不接收也不信任前端传入的 `owner_id`；用户只能访问自己的宠物、健康记录和体重记录。
+
 ### GET /api/pets/
 
 获取我的宠物列表。
@@ -333,11 +335,55 @@ Content-Type: multipart/form-data
 
 获取宠物详情。
 
+详情包含宠物基础信息、最近一次疫苗记录、最近一次驱虫记录、最近一次体重记录、提醒列表和首页统计字段：
+
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": {
+    "id": 1,
+    "name": "豆豆",
+    "species": "cat",
+    "breed": "英短金渐层",
+    "gender": "male",
+    "birthday": "2024-01-01",
+    "avatar": "",
+    "color": "金色",
+    "weight": "4.60",
+    "neutered": true,
+    "remark": "",
+    "latest_vaccine_record": {},
+    "latest_deworm_record": {},
+    "latest_weight_record": {},
+    "reminders": [
+      {
+        "record_type": "vaccine",
+        "title": "猫三联",
+        "next_remind_date": "2026-06-07",
+        "days_until": 15
+      }
+    ],
+    "record_stats": {
+      "vaccine_count": 1,
+      "deworm_status": "体内驱虫",
+      "current_weight": "4.60"
+    }
+  }
+}
+```
+
 ---
 
 ### PUT /api/pets/{id}/
 
 更新宠物。
+
+---
+
+### PATCH /api/pets/{id}/
+
+局部更新宠物。
 
 ---
 
@@ -393,6 +439,12 @@ record_type=vaccine
 
 ---
 
+### PATCH /api/health-records/{id}/
+
+局部更新健康记录。
+
+---
+
 ### DELETE /api/health-records/{id}/
 
 删除健康记录。
@@ -424,6 +476,16 @@ record_type=vaccine
 ### DELETE /api/weight-records/{id}/
 
 删除体重记录。
+
+---
+
+### 前端默认宠物头像
+
+如果 `pet.avatar` 为空，前端展示：
+
+```text
+frontend/src/static/images/default-pet-avatar.svg
+```
 
 ---
 

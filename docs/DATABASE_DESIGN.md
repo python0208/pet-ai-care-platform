@@ -81,10 +81,10 @@ name        varchar(64)
 species     varchar(20)    # cat/dog/other
 breed       varchar(64)
 gender      varchar(20)    # male/female/unknown
-birthday    date
-avatar      varchar/url
-color       varchar(64)
-weight      decimal(6,2)
+birthday    date, nullable
+avatar      varchar/url, blank
+color       varchar(64), blank
+weight      decimal(6,2), nullable
 neutered    bool
 remark      text
 created_at  datetime
@@ -96,6 +96,7 @@ updated_at  datetime
 - owner_id 必须来自 request.user。
 - 用户只能访问自己的宠物。
 - 删除宠物可先物理删除，后期改软删除。
+- pet.avatar 可为空，前端默认头像为 `frontend/src/static/images/default-pet-avatar.svg`。
 
 ---
 
@@ -134,6 +135,7 @@ other     其他
 - 健康记录必须属于某只宠物。
 - 用户只能操作自己宠物下的健康记录。
 - attachments 存储图片 URL 列表。
+- 当前 Phase 2 不开发文件上传，只保存 URL 列表。
 
 ---
 
@@ -155,6 +157,7 @@ created_at  datetime
 - 用于生成体重曲线。
 - 同一天可以允许多条，也可以后期限制一条。
 - 前端按 record_date 排序展示。
+- 用户只能操作自己宠物下的体重记录。
 
 ---
 

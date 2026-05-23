@@ -22,38 +22,41 @@
         </view>
       </view>
 
-      <view class="pet-card soft-card">
+      <view class="pet-card soft-card" @tap="handlePetCardTap">
         <view class="pet-avatar-wrap">
-          <view class="pet-avatar">
-            <text class="cat-face">喵</text>
-          </view>
+          <image
+            class="pet-avatar"
+            :src="homePet?.avatar || '/static/images/default-pet-avatar.svg'"
+            mode="aspectFill"
+          />
           <view class="camera-dot">
             <image src="/static/icons/png/camera.png" mode="aspectFit" />
           </view>
         </view>
         <view class="pet-info">
           <view class="pet-name-row">
-            <text class="pet-name">豆豆</text>
-            <text class="gender-symbol">♂</text>
+            <text class="pet-name">{{ homePet ? homePet.name : "还没有宠物档案" }}</text>
+            <text v-if="homePet" class="gender-symbol">{{ genderSymbol }}</text>
           </view>
-          <text class="pet-meta">英短金渐层｜2岁3个月</text>
-          <view class="weight-line">
+          <text class="pet-meta">{{ homePet ? petMeta : "添加宠物后可同步健康提醒" }}</text>
+          <view v-if="homePet" class="weight-line">
             <text>体重</text>
-            <text class="weight-number">4.6</text>
+            <text class="weight-number">{{ homeWeight }}</text>
             <text>kg</text>
           </view>
+          <button v-else class="add-pet-button" hover-class="button-tap" @tap.stop="goAddPet">立即添加</button>
         </view>
-        <view class="reminder-pills">
+        <view v-if="homePet" class="reminder-pills">
           <view class="pill pill-orange">
             <image src="/static/icons/png/deworm_bug.png" mode="aspectFit" />
             <text>驱虫</text>
-            <text class="pill-strong">3天后</text>
+            <text class="pill-strong">{{ dewormReminderText }}</text>
             <image class="chevron" src="/static/icons/png/chevron_right.png" mode="aspectFit" />
           </view>
           <view class="pill pill-green">
             <image src="/static/icons/png/vaccine_syringe.png" mode="aspectFit" />
             <text>疫苗</text>
-            <text class="pill-strong">15天后</text>
+            <text class="pill-strong">{{ vaccineReminderText }}</text>
             <image class="chevron" src="/static/icons/png/chevron_right.png" mode="aspectFit" />
           </view>
         </view>
@@ -91,7 +94,7 @@
         </view>
         <view class="remind-grid">
           <view
-            v-for="item in reminders"
+            v-for="item in reminderCards"
             :key="item.title"
             class="remind-card"
             :class="item.theme"
@@ -106,7 +109,7 @@
       </view>
 
       <view class="quick-card soft-card">
-        <view v-for="entry in quickEntries" :key="entry.title" class="quick-item">
+        <view v-for="entry in quickEntries" :key="entry.title" class="quick-item" @tap="entry.action">
           <image :src="entry.icon" mode="aspectFit" />
           <text>{{ entry.title }}</text>
         </view>
@@ -144,40 +147,65 @@
 </template>
 
 <script setup lang="ts">
+import { onShow } from "@dcloudio/uni-app";
 import { computed, onMounted, ref } from "vue";
 
+import { getPet, getPets } from "@/api/pets";
 import { getHealthStatus } from "@/api/request";
 import { useAppStore } from "@/stores/app";
+import type { Pet, PetDetail, PetReminder } from "@/types/pet";
 
 const appStore = useAppStore();
 const healthStatus = ref<"checking" | "ok" | "error">("checking");
+const homePet = ref<Pet | null>(null);
+const homePetDetail = ref<PetDetail | null>(null);
 
-const reminders = [
+const reminderCards = computed(() => [
   {
     title: "疫苗记录",
-    sub: "2项记录",
+    sub: homePetDetail.value
+      ? `${homePetDetail.value.record_stats.vaccine_count}项记录`
+      : "暂无数据",
     icon: "/static/icons/png/vaccine_record.png",
     theme: "purple-card",
   },
   {
     title: "驱虫记录",
-    sub: "上次28天前",
+    sub: homePetDetail.value?.record_stats.deworm_status || "暂无记录",
     icon: "/static/icons/png/deworm_bug.png",
     theme: "green-card",
   },
   {
     title: "体重曲线",
-    sub: "4.6 kg",
+    sub: homePetDetail.value?.record_stats.current_weight
+      ? `${homePetDetail.value.record_stats.current_weight} kg`
+      : "暂无体重",
     icon: "/static/icons/png/weight_chart.png",
     theme: "blue-card",
   },
-];
+]);
 
 const quickEntries = [
-  { title: "宠物档案", icon: "/static/icons/png/pet_profile.png" },
-  { title: "AI咨询", icon: "/static/icons/png/ai_robot.png" },
-  { title: "附近医院", icon: "/static/icons/png/location_hospital.png" },
-  { title: "商城", icon: "/static/icons/png/shop_bag.png" },
+  {
+    title: "宠物档案",
+    icon: "/static/icons/png/pet_profile.png",
+    action: () => uni.switchTab({ url: "/pages/pets/index" }),
+  },
+  {
+    title: "AI咨询",
+    icon: "/static/icons/png/ai_robot.png",
+    action: () => uni.switchTab({ url: "/pages/ai/index" }),
+  },
+  {
+    title: "附近医院",
+    icon: "/static/icons/png/location_hospital.png",
+    action: () => uni.switchTab({ url: "/pages/services/index" }),
+  },
+  {
+    title: "商城",
+    icon: "/static/icons/png/shop_bag.png",
+    action: () => uni.showToast({ title: "商城模块后续开放", icon: "none" }),
+  },
 ];
 
 const products = [
@@ -215,6 +243,28 @@ const healthLabel = computed(() => {
 });
 
 const healthClass = computed(() => `status-${healthStatus.value}`);
+const genderSymbol = computed(() => {
+  if (homePet.value?.gender === "male") {
+    return "♂";
+  }
+  if (homePet.value?.gender === "female") {
+    return "♀";
+  }
+  return "·";
+});
+const homeWeight = computed(() => homePet.value?.weight || "暂无");
+const petMeta = computed(() => {
+  if (!homePet.value) {
+    return "";
+  }
+  return `${homePet.value.breed || speciesLabel(homePet.value.species)}｜${ageLabel(homePet.value.birthday)}`;
+});
+const dewormReminderText = computed(() => formatReminder("deworm"));
+const vaccineReminderText = computed(() => formatReminder("vaccine"));
+
+onShow(async () => {
+  await loadHomePet();
+});
 
 onMounted(async () => {
   try {
@@ -228,6 +278,66 @@ onMounted(async () => {
     appStore.setBackendStatus(healthStatus.value);
   }
 });
+
+async function loadHomePet() {
+  const token = uni.getStorageSync("access_token");
+  if (!token) {
+    homePet.value = null;
+    homePetDetail.value = null;
+    return;
+  }
+  try {
+    const response = await getPets();
+    homePet.value = response.data[0] || null;
+    homePetDetail.value = homePet.value ? (await getPet(homePet.value.id)).data : null;
+  } catch (error) {
+    console.log("load pet failed:", error);
+    homePet.value = null;
+    homePetDetail.value = null;
+  }
+}
+
+function goAddPet() {
+  uni.navigateTo({ url: "/pages/pets/edit" });
+}
+
+function handlePetCardTap() {
+  if (homePet.value) {
+    uni.navigateTo({ url: `/pages/pets/detail?id=${homePet.value.id}` });
+    return;
+  }
+  goAddPet();
+}
+
+function formatReminder(type: "vaccine" | "deworm") {
+  const reminder = homePetDetail.value?.reminders.find(
+    (item: PetReminder) => item.record_type === type,
+  );
+  if (!reminder) {
+    return "暂无提醒";
+  }
+  if (reminder.days_until >= 0) {
+    return `${reminder.days_until}天后`;
+  }
+  return `已过期${Math.abs(reminder.days_until)}天`;
+}
+
+function ageLabel(birthday: string | null) {
+  if (!birthday) {
+    return "年龄待补充";
+  }
+  const birth = new Date(birthday);
+  const now = new Date();
+  const months = Math.max(
+    0,
+    (now.getFullYear() - birth.getFullYear()) * 12 + now.getMonth() - birth.getMonth(),
+  );
+  return `${Math.floor(months / 12)}岁${months % 12}个月`;
+}
+
+function speciesLabel(species: string) {
+  return { cat: "猫", dog: "狗", other: "其他" }[species] || "宠物";
+}
 </script>
 
 <style scoped>
@@ -429,6 +539,18 @@ onMounted(async () => {
   color: #1c82ff;
   font-size: 42rpx;
   font-weight: 900;
+}
+
+.add-pet-button {
+  width: 178rpx;
+  height: 62rpx;
+  margin: 20rpx 0 0;
+  border-radius: 999rpx;
+  background: #1f8cff;
+  color: #fff;
+  font-size: 24rpx;
+  font-weight: 900;
+  box-shadow: 0 10rpx 22rpx rgba(31, 140, 255, 0.22);
 }
 
 .reminder-pills {

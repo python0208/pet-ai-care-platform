@@ -75,13 +75,20 @@ pet-ai-care-platform/
 - 编辑宠物
 - 删除宠物
 - 宠物详情
-- 宠物头像上传
+- 宠物头像 URL 记录与前端默认头像 fallback
 - 疫苗记录
 - 驱虫记录
 - 就诊记录
 - 过敏史记录
 - 体重记录
 - 体重成长曲线
+- 用户只能访问自己的宠物、健康记录和体重记录
+
+当前默认宠物头像资源路径：
+
+```text
+frontend/src/static/images/default-pet-avatar.svg
+```
 
 ### 3.3 AI 健康咨询
 
