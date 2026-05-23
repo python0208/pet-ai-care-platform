@@ -49,6 +49,7 @@ import type { PetDetail, PetGender, PetSpecies } from "@/types/pet";
 import { requireAuth } from "@/utils/auth";
 
 const petId = ref("");
+const SELECTED_PET_STORAGE_KEY = "selected_pet_id";
 const pet = ref<PetDetail | null>(null);
 
 const ageLabel = computed(() => {
@@ -107,6 +108,9 @@ function handleDelete() {
         return;
       }
       await deletePet(petId.value);
+      if (String(uni.getStorageSync(SELECTED_PET_STORAGE_KEY)) === petId.value) {
+        uni.removeStorageSync(SELECTED_PET_STORAGE_KEY);
+      }
       uni.showToast({ title: "已删除", icon: "success" });
       uni.switchTab({ url: "/pages/pets/index" });
     },

@@ -95,6 +95,8 @@ updated_at  datetime
 
 - owner_id 必须来自 request.user。
 - 用户只能访问自己的宠物。
+- `Pet.owner_id` 是外键关系，一个用户可以拥有多只宠物；不得改成 OneToOne，也不得对 owner 做唯一约束。
+- 新增第二只宠物不能覆盖第一只宠物；编辑或删除某一只宠物不应影响同一用户的其他宠物。
 - 删除宠物可先物理删除，后期改软删除。
 - pet.avatar 可为空；如果有值，保存 `/api/files/upload/` 返回的 URL，不能保存前端本地临时路径。
 - 前端默认头像为 `frontend/src/static/images/default-pet-avatar.svg`。

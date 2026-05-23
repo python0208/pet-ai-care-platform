@@ -12,9 +12,36 @@
         <button class="add-button" hover-class="button-tap" @tap="goCreate">+ 新增宠物</button>
       </view>
 
-      <view v-if="loading" class="state-card">
+      <view v-if="pets.length > 0" class="pet-switcher-card">
+        <scroll-view class="pet-switcher" scroll-x :show-scrollbar="false">
+          <view class="pet-switch-track">
+            <view
+              v-for="pet in pets"
+              :key="pet.id"
+              class="pet-switch-item"
+              :class="{ active: pet.id === selectedPetId }"
+              @tap="selectPet(pet.id)"
+            >
+              <image :src="petAvatarUrl(pet.avatar)" mode="aspectFill" />
+              <text>{{ pet.name }}</text>
+            </view>
+            <view class="pet-switch-item add-switch" @tap="goCreate">
+              <view class="add-avatar">+</view>
+              <text>新增</text>
+            </view>
+          </view>
+        </scroll-view>
+      </view>
+
+      <view v-if="loading && pets.length === 0" class="state-card">
         <image src="/static/icons/archive/add_pet.png" mode="aspectFit" />
         <text>正在整理档案...</text>
+      </view>
+
+      <view v-else-if="errorMessage" class="state-card">
+        <image src="/static/icons/archive/empty_pet.png" mode="aspectFit" />
+        <text>{{ errorMessage }}</text>
+        <button class="primary-button" hover-class="button-tap" @tap="loadArchive">重新加载</button>
       </view>
 
       <view v-else-if="pets.length === 0" class="empty-card">
@@ -25,7 +52,7 @@
       </view>
 
       <template v-else-if="selectedPet">
-        <view class="pet-card" @tap="goDetail(selectedPet.id)">
+        <view class="pet-card" :class="{ refreshing: detailLoading }" @tap="goDetail(selectedPet.id)">
           <view class="avatar-wrap">
             <image class="pet-avatar" :src="petAvatarUrl(selectedPet.avatar)" mode="aspectFill" />
             <image class="camera-badge" src="/static/icons/archive/camera_badge.png" mode="aspectFit" />
@@ -139,6 +166,8 @@ import { resolveMediaUrl } from "@/api/request";
 import type { HealthRecord, HealthRecordType, Pet, PetDetail, PetGender, PetSpecies, WeightRecord } from "@/types/pet";
 import { requireAuth } from "@/utils/auth";
 
+const SELECTED_PET_STORAGE_KEY = "selected_pet_id";
+
 interface RecentItem {
   key: string;
   icon: string;
@@ -149,7 +178,10 @@ interface RecentItem {
 }
 
 const loading = ref(false);
+const detailLoading = ref(false);
+const errorMessage = ref("");
 const pets = ref<Pet[]>([]);
+const selectedPetId = ref<number | null>(null);
 const selectedPet = ref<PetDetail | null>(null);
 const healthRecords = ref<HealthRecord[]>([]);
 const weightRecords = ref<WeightRecord[]>([]);
@@ -267,28 +299,59 @@ const trendPoints = computed(() => {
 
 async function loadArchive() {
   loading.value = true;
+  errorMessage.value = "";
   try {
     const listResponse = await getPets();
     pets.value = listResponse.data;
     if (pets.value.length === 0) {
+      selectedPetId.value = null;
       selectedPet.value = null;
       healthRecords.value = [];
       weightRecords.value = [];
       return;
     }
-    const firstPet = pets.value[0];
+    const savedPetId = Number(uni.getStorageSync(SELECTED_PET_STORAGE_KEY));
+    const currentIdStillExists = pets.value.some((item) => item.id === selectedPetId.value);
+    const savedPetStillExists = pets.value.some((item) => item.id === savedPetId);
+    const nextPetId = currentIdStillExists
+      ? selectedPetId.value
+      : savedPetStillExists
+        ? savedPetId
+        : pets.value[0].id;
+    uni.setStorageSync(SELECTED_PET_STORAGE_KEY, String(nextPetId));
+    await selectPet(nextPetId, false);
+  } catch (error) {
+    errorMessage.value = "档案加载失败，请稍后重试";
+    uni.showToast({ title: "档案加载失败", icon: "none" });
+  } finally {
+    loading.value = false;
+  }
+}
+
+async function selectPet(petId: number | null, persist = true) {
+  if (!petId || (persist && petId === selectedPetId.value && selectedPet.value)) {
+    return;
+  }
+  selectedPetId.value = petId;
+  if (persist) {
+    uni.setStorageSync(SELECTED_PET_STORAGE_KEY, String(petId));
+  }
+  detailLoading.value = true;
+  errorMessage.value = "";
+  try {
     const [detailResponse, healthResponse, weightResponse] = await Promise.all([
-      getPet(firstPet.id),
-      getHealthRecords(firstPet.id),
-      getWeightRecords(firstPet.id),
+      getPet(petId),
+      getHealthRecords(petId),
+      getWeightRecords(petId),
     ]);
     selectedPet.value = detailResponse.data;
     healthRecords.value = healthResponse.data;
     weightRecords.value = weightResponse.data;
   } catch (error) {
-    uni.showToast({ title: "档案加载失败", icon: "none" });
+    errorMessage.value = "当前宠物档案加载失败";
+    uni.showToast({ title: "当前宠物加载失败", icon: "none" });
   } finally {
-    loading.value = false;
+    detailLoading.value = false;
   }
 }
 
@@ -387,6 +450,7 @@ function weightDiff(current: WeightRecord, previous?: WeightRecord) {
 .page-inner {
   min-height: 100vh;
   padding: 48rpx 30rpx 58rpx;
+  box-sizing: border-box;
 }
 
 .hero-row,
@@ -419,15 +483,17 @@ function weightDiff(current: WeightRecord, previous?: WeightRecord) {
 
 .page-title {
   color: #10172d;
-  font-size: 44rpx;
+  font-size: 56rpx;
   font-weight: 900;
+  line-height: 1.12;
 }
 
 .page-subtitle {
   display: block;
   margin-top: 10rpx;
   color: #637086;
-  font-size: 26rpx;
+  font-size: 28rpx;
+  line-height: 1.35;
 }
 
 .add-button,
@@ -443,17 +509,90 @@ function weightDiff(current: WeightRecord, previous?: WeightRecord) {
   width: 190rpx;
   height: 82rpx;
   margin: 0;
-  font-size: 27rpx;
+  flex: 0 0 190rpx;
+  font-size: 26rpx;
+  line-height: 82rpx;
+  white-space: nowrap;
 }
 
 .state-card,
 .empty-card,
+.pet-switcher-card,
 .pet-card,
 .module-panel,
 .section-card {
   border-radius: 34rpx;
   background: rgba(255, 255, 255, 0.95);
   box-shadow: 0 18rpx 46rpx rgba(30, 119, 188, 0.1);
+}
+
+.pet-switcher-card {
+  margin-top: 30rpx;
+  padding: 22rpx 0 18rpx;
+  overflow: hidden;
+}
+
+.pet-switcher {
+  width: 100%;
+  white-space: nowrap;
+}
+
+.pet-switch-track {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 20rpx;
+  padding: 0 22rpx;
+  min-width: 100%;
+  box-sizing: border-box;
+}
+
+.pet-switch-item {
+  width: 112rpx;
+  flex: 0 0 112rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10rpx;
+}
+
+.pet-switch-item image,
+.add-avatar {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 999rpx;
+  background: #eef8ff;
+  box-sizing: border-box;
+}
+
+.pet-switch-item.active image {
+  border: 6rpx solid #1f8cff;
+  box-shadow: 0 12rpx 26rpx rgba(31, 140, 255, 0.22);
+}
+
+.pet-switch-item text {
+  width: 100%;
+  color: #7d8799;
+  font-size: 23rpx;
+  font-weight: 800;
+  line-height: 1.2;
+  text-align: center;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.pet-switch-item.active text {
+  color: #1f8cff;
+}
+
+.add-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2rpx dashed #9ccfff;
+  color: #1f8cff;
+  font-size: 46rpx;
+  font-weight: 900;
 }
 
 .state-card,
@@ -501,11 +640,18 @@ function weightDiff(current: WeightRecord, previous?: WeightRecord) {
 .pet-card {
   position: relative;
   min-height: 210rpx;
-  margin-top: 32rpx;
+  margin-top: 28rpx;
   padding: 28rpx;
   display: flex;
   align-items: center;
   gap: 28rpx;
+  box-sizing: border-box;
+  overflow: hidden;
+  transition: opacity 0.18s ease;
+}
+
+.pet-card.refreshing {
+  opacity: 0.68;
 }
 
 .avatar-wrap {
@@ -539,12 +685,19 @@ function weightDiff(current: WeightRecord, previous?: WeightRecord) {
 
 .pet-name-row {
   gap: 12rpx;
+  min-width: 0;
 }
 
 .pet-name {
+  flex: 1;
+  min-width: 0;
   color: #10172d;
-  font-size: 38rpx;
+  font-size: 48rpx;
   font-weight: 900;
+  line-height: 1.16;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .gender-symbol {
@@ -557,7 +710,11 @@ function weightDiff(current: WeightRecord, previous?: WeightRecord) {
   display: block;
   margin-top: 10rpx;
   color: #263049;
-  font-size: 26rpx;
+  font-size: 27rpx;
+  line-height: 1.35;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .weight-row {
@@ -585,6 +742,7 @@ function weightDiff(current: WeightRecord, previous?: WeightRecord) {
   border-radius: 999rpx;
   font-size: 24rpx;
   font-weight: 900;
+  white-space: nowrap;
 }
 
 .status-tag image {
@@ -605,29 +763,34 @@ function weightDiff(current: WeightRecord, previous?: WeightRecord) {
 .card-chevron {
   width: 30rpx;
   height: 30rpx;
+  flex: 0 0 30rpx;
 }
 
 .module-panel {
   margin-top: 28rpx;
   padding: 22rpx;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 18rpx;
 }
 
 .module-card {
-  min-height: 144rpx;
-  padding: 20rpx 12rpx;
+  min-height: 168rpx;
+  padding: 18rpx 14rpx;
   border-radius: 24rpx;
   display: flex;
-  align-items: center;
-  gap: 12rpx;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 10rpx;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .module-card image {
-  width: 62rpx;
-  height: 62rpx;
-  flex: 0 0 62rpx;
+  width: 54rpx;
+  height: 54rpx;
+  flex: 0 0 54rpx;
 }
 
 .module-title,
@@ -637,15 +800,22 @@ function weightDiff(current: WeightRecord, previous?: WeightRecord) {
 
 .module-title {
   color: #10172d;
-  font-size: 26rpx;
+  font-size: 28rpx;
   font-weight: 900;
+  line-height: 1.2;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .module-sub {
   margin-top: 8rpx;
   color: #637086;
-  font-size: 22rpx;
+  font-size: 23rpx;
   line-height: 1.25;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .blue-module { background: #eff8ff; }
@@ -663,18 +833,23 @@ function weightDiff(current: WeightRecord, previous?: WeightRecord) {
 .section-head {
   justify-content: space-between;
   margin-bottom: 20rpx;
+  gap: 18rpx;
 }
 
 .section-title {
   color: #10172d;
-  font-size: 32rpx;
+  font-size: 34rpx;
   font-weight: 900;
+  line-height: 1.2;
+  white-space: nowrap;
 }
 
 .more-link {
   gap: 6rpx;
+  flex: 0 0 auto;
   color: #7d8799;
   font-size: 24rpx;
+  white-space: nowrap;
 }
 
 .more-link image {
@@ -697,11 +872,13 @@ function weightDiff(current: WeightRecord, previous?: WeightRecord) {
   border: 1rpx solid #edf2f7;
   border-radius: 24rpx;
   background: #fff;
+  box-sizing: border-box;
 }
 
 .recent-row > image:first-child {
   width: 58rpx;
   height: 58rpx;
+  flex: 0 0 58rpx;
 }
 
 .recent-main {
@@ -711,6 +888,8 @@ function weightDiff(current: WeightRecord, previous?: WeightRecord) {
 
 .recent-title-row {
   gap: 12rpx;
+  min-width: 0;
+  justify-content: space-between;
 }
 
 .recent-title,
@@ -719,9 +898,15 @@ function weightDiff(current: WeightRecord, previous?: WeightRecord) {
 }
 
 .recent-title {
+  flex: 1;
+  min-width: 0;
   color: #10172d;
-  font-size: 26rpx;
+  font-size: 28rpx;
   font-weight: 900;
+  line-height: 1.25;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .recent-sub {
@@ -729,13 +914,18 @@ function weightDiff(current: WeightRecord, previous?: WeightRecord) {
   color: #637086;
   font-size: 24rpx;
   line-height: 1.35;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .status-pill {
+  flex: 0 0 auto;
   padding: 4rpx 14rpx;
   border-radius: 999rpx;
   font-size: 21rpx;
   font-weight: 900;
+  white-space: nowrap;
 }
 
 .status-pill.done {
@@ -751,6 +941,7 @@ function weightDiff(current: WeightRecord, previous?: WeightRecord) {
 .row-chevron {
   width: 26rpx;
   height: 26rpx;
+  flex: 0 0 26rpx;
 }
 
 .trend-title {

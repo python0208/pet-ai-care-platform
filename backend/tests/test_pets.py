@@ -76,6 +76,40 @@ class PetApiTests(APITestCase):
         self.assertEqual(len(response.json()["data"]), 1)
         self.assertEqual(response.json()["data"][0]["name"], "豆豆")
 
+    def test_same_user_can_create_multiple_pets(self):
+        self.authenticate()
+
+        first_response = self.client.post(reverse("pet-list"), self.pet_payload("豆豆"), format="json")
+        second_response = self.client.post(reverse("pet-list"), self.pet_payload("花花"), format="json")
+
+        self.assertEqual(first_response.status_code, 201)
+        self.assertEqual(second_response.status_code, 201)
+        self.assertEqual(Pet.objects.filter(owner=self.user).count(), 2)
+        self.assertTrue(Pet.objects.filter(owner=self.user, name="豆豆").exists())
+        self.assertTrue(Pet.objects.filter(owner=self.user, name="花花").exists())
+
+    def test_pet_list_returns_all_owned_pets(self):
+        self.create_pet(name="豆豆")
+        self.create_pet(name="花花")
+        self.create_pet(owner=self.other_user, name="球球")
+        self.authenticate()
+
+        response = self.client.get(reverse("pet-list"))
+
+        self.assertEqual(response.status_code, 200)
+        names = {item["name"] for item in response.json()["data"]}
+        self.assertEqual(names, {"豆豆", "花花"})
+
+    def test_adding_second_pet_keeps_first_pet(self):
+        first_pet = self.create_pet(name="豆豆")
+        self.authenticate()
+
+        response = self.client.post(reverse("pet-list"), self.pet_payload("花花"), format="json")
+
+        self.assertEqual(response.status_code, 201)
+        self.assertTrue(Pet.objects.filter(id=first_pet.id, name="豆豆").exists())
+        self.assertEqual(Pet.objects.filter(owner=self.user).count(), 2)
+
     def test_user_can_update_own_pet(self):
         pet = self.create_pet()
         self.authenticate()
@@ -92,6 +126,23 @@ class PetApiTests(APITestCase):
         self.assertEqual(str(pet.weight), "4.80")
         self.assertEqual(pet.avatar, "/media/uploads/pet/avatar.png")
 
+    def test_updating_one_pet_does_not_affect_other_pet(self):
+        first_pet = self.create_pet(name="豆豆")
+        second_pet = self.create_pet(name="花花")
+        self.authenticate()
+
+        response = self.client.patch(
+            reverse("pet-detail", args=[first_pet.id]),
+            {"name": "团团"},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        first_pet.refresh_from_db()
+        second_pet.refresh_from_db()
+        self.assertEqual(first_pet.name, "团团")
+        self.assertEqual(second_pet.name, "花花")
+
     def test_user_can_delete_own_pet(self):
         pet = self.create_pet()
         self.authenticate()
@@ -100,6 +151,17 @@ class PetApiTests(APITestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertFalse(Pet.objects.filter(id=pet.id).exists())
+
+    def test_deleting_one_pet_does_not_delete_other_pet(self):
+        first_pet = self.create_pet(name="豆豆")
+        second_pet = self.create_pet(name="花花")
+        self.authenticate()
+
+        response = self.client.delete(reverse("pet-detail", args=[first_pet.id]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(Pet.objects.filter(id=first_pet.id).exists())
+        self.assertTrue(Pet.objects.filter(id=second_pet.id, name="花花").exists())
 
     def test_user_cannot_view_other_users_pet_detail(self):
         pet = self.create_pet(owner=self.other_user)

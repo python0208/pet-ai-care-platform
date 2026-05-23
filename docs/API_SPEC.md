@@ -300,17 +300,19 @@ Content-Type: multipart/form-data
 
 ## 4. 宠物档案 API
 
-本组接口均需要 JWT 登录态。后端始终使用 `request.user` 过滤数据，不接收也不信任前端传入的 `owner_id`；用户只能访问自己的宠物、健康记录和体重记录。
+本组接口均需要 JWT 登录态。后端始终使用 `request.user` 过滤数据，不接收也不信任前端传入的 `owner_id`；用户只能访问自己的宠物、健康记录和体重记录。一个用户可以拥有多个宠物档案，关系为 `User 1 - N Pet`。
 
 ### GET /api/pets/
 
-获取我的宠物列表。
+获取我的宠物列表。接口返回当前登录用户的全部宠物，不会因为新增第二只宠物而覆盖或隐藏旧宠物。
+
+前端档案页应维护 `pets`、`selectedPetId`、`selectedPet`、`healthRecords` 和 `weightRecords`。进入页面时先调用本接口获取全部宠物；如果本地保存的 `selectedPetId` 仍存在则优先选中，否则选中第一只宠物；切换宠物时重新请求该宠物的健康记录和体重记录。
 
 ---
 
 ### POST /api/pets/
 
-新增宠物。
+新增宠物。后端自动将 `owner` 设置为 `request.user`，前端不能传 `owner_id`。新增宠物后应重新请求 `/api/pets/`，旧宠物必须继续保留在列表中。
 
 请求：
 

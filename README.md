@@ -83,6 +83,8 @@ pet-ai-care-platform/
 - 体重记录
 - 体重成长曲线
 - 用户只能访问自己的宠物、健康记录和体重记录
+- 一个用户可以拥有多个宠物档案，`GET /api/pets/` 返回当前用户全部宠物
+- 档案页支持横向宠物头像切换，当前宠物通过 `selectedPetId` 维护
 
 当前默认宠物头像资源路径：
 
@@ -91,6 +93,8 @@ frontend/src/static/images/default-pet-avatar.svg
 ```
 
 宠物头像通过 `/api/files/upload/` 上传，当前只支持 `jpg`、`jpeg`、`png`、`webp`，单文件最大 5MB。`Pet.avatar` 只保存上传接口返回的 URL，不能保存前端本地临时路径；本地上传文件落在 `media/`，该目录不进入 Git。档案管理页按 `docs/page/archive_page.png` 重构，运行时使用复制到 `frontend/src/static/icons/archive/` 的 `archive_page_assets_pack/` 资源。
+
+档案管理页必须展示当前用户的全部宠物，新增第二只宠物不会覆盖旧宠物。页面默认选中上次访问的 `selectedPetId`，若该宠物已被删除则自动切换到列表第一只；切换宠物时同步刷新健康记录统计、近期记录和体重趋势。移动端 UI 需适配 375px、390px、414px 常见宽度，中文长文本使用省略号处理，避免卡片和按钮文字溢出。
 
 ### 3.3 AI 健康咨询
 

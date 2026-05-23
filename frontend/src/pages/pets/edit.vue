@@ -72,6 +72,7 @@ import { choosePetAvatar, uploadPetAvatar } from "@/utils/upload";
 import { requireAuth } from "@/utils/auth";
 
 const petId = ref("");
+const SELECTED_PET_STORAGE_KEY = "selected_pet_id";
 const form = reactive({
   name: "",
   species: "cat" as PetSpecies,
@@ -170,8 +171,9 @@ async function submit() {
     const response = isEdit.value
       ? await updatePet(petId.value, payload)
       : await createPet(payload);
+    uni.setStorageSync(SELECTED_PET_STORAGE_KEY, String(response.data.id));
     uni.showToast({ title: "已保存", icon: "success" });
-    uni.redirectTo({ url: `/pages/pets/detail?id=${response.data.id}` });
+    uni.switchTab({ url: "/pages/pets/index" });
   } catch (error) {
     uni.showToast({ title: "保存失败，请检查表单", icon: "none" });
   }
