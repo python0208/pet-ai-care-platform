@@ -98,67 +98,75 @@
 
 ---
 
-## Phase 1：用户登录与认证
+## Phase 1：邮箱注册与登录认证
 
 ### 目标
 
-完成手机号验证码登录、微信小程序登录和用户资料接口。
+完成邮箱注册、邮箱密码登录、JWT 登录态、微信小程序登录预留和用户资料接口。当前 MVP 不使用邮箱验证码，手机号不作为认证登录方式。
 
 ### 后端任务
 
 1. 创建 `apps/users/`。
 2. 实现自定义 User 模型。
-3. 实现 SmsCode 模型。
-4. 实现发送验证码接口。
-5. 开发环境固定验证码 `123456`。
-6. 实现手机号验证码登录接口。
-7. 实现微信小程序登录接口。
-8. 真实微信 code2session 逻辑通过 provider 封装。
-9. mock 微信登录通过环境变量控制。
-10. 实现 JWT token 返回。
-11. 实现 `/api/users/me/`。
-12. 实现用户资料更新。
-13. 添加权限测试。
+3. User 以 email 作为唯一登录标识，不包含 phone 认证字段。
+4. 实现邮箱注册接口 `/api/auth/register/`。
+5. 实现邮箱密码登录接口 `/api/auth/login/`。
+6. 注册和登录是两个明确动作，不做登录时自动注册。
+7. 不创建 SmsCode、EmailCode 或 EmailVerificationCode 模型。
+8. 不实现手机号验证码或邮箱验证码接口。
+9. 实现微信小程序登录接口预留。
+10. 真实微信 code2session 逻辑通过 provider 封装。
+11. mock 微信登录通过环境变量控制。
+12. 实现 JWT token 返回和刷新接口。
+13. 实现 `/api/users/me/`。
+14. 实现用户资料更新。
+15. 添加权限测试。
 
 ### 前端任务
 
 1. 登录页。
-2. 手机号登录页。
-3. 微信登录按钮。
+2. 注册页或登录/注册 Tab。
+3. 邮箱、密码表单。
 4. token 保存。
 5. 登录拦截。
-6. 我的页面显示用户资料。
+6. 我的页面显示默认头像、昵称、邮箱。
 7. 退出登录。
 
 ### 验收标准
 
-1. 手机号 + `123456` 可以登录。
+1. 邮箱和密码可以注册。
+2. 邮箱和密码可以登录。
 2. 登录后返回 access_token 和 refresh_token。
 3. 登录后可以访问 `/api/users/me/`。
 4. 未登录访问 `/api/users/me/` 返回 401。
-5. 前端可以完成登录并进入我的页面。
+5. 前端可以完成注册/登录并进入我的页面。
+6. 项目中没有短信验证码或邮箱验证码登录入口。
 
 ### 给 Codex 的提示词
 
 ```text
-请在当前项目基础上执行 Phase 1：用户登录与认证。
+请在当前项目基础上执行 Phase 1：邮箱注册与登录认证。
 
 要求：
 1. 后端创建 users app。
-2. 实现自定义 User 模型，至少包含 phone、nickname、avatar、wx_openid、wx_unionid、is_active、is_staff。
-3. 实现 SmsCode 模型。
-4. 实现发送验证码接口，开发环境固定验证码为 123456。
-5. 实现手机号验证码登录接口，登录成功返回 access_token、refresh_token 和 user 信息。
-6. 实现微信小程序登录接口，先允许 mock code 登录，真实 code2session 逻辑通过 provider 封装并读取环境变量。
-7. 实现 /api/users/me/ 获取和更新用户资料。
-8. 所有需要登录的接口必须使用 JWT 鉴权。
-9. 前端实现登录页、手机号登录、token 保存、登录拦截、我的页面显示用户资料。
-10. 补充必要的后端测试。
+2. 实现自定义 User 模型，至少包含 email、nickname、avatar、gender、wx_openid、wx_unionid、app_openid、is_email_verified、is_active、is_staff。
+3. email 必须唯一，使用 Django 密码哈希机制保存密码。
+4. 实现邮箱注册接口 /api/auth/register/，注册成功返回 access_token、refresh_token 和 user 信息。
+5. 实现邮箱密码登录接口 /api/auth/login/，登录成功返回 access_token、refresh_token 和 user 信息。
+6. 实现 /api/auth/token/refresh/。
+7. 实现微信小程序登录接口，先允许 mock code 登录，真实 code2session 逻辑通过 provider 封装并读取环境变量。
+8. 实现 /api/users/me/ 获取和更新用户资料。
+9. 所有需要登录的接口必须使用 JWT 鉴权。
+10. 前端实现登录/注册页面、token 保存、登录拦截、我的页面显示默认头像、昵称和邮箱。
+11. 不创建 SmsCode、EmailCode、EmailVerificationCode 模型，不实现短信或邮箱验证码接口。
+12. 补充必要的后端测试。
 
 验收：
-- 手机号 + 123456 可以登录。
+- 邮箱和密码可以注册。
+- 邮箱和密码可以登录。
 - 登录后可以访问 /api/users/me/。
 - 未登录访问 /api/users/me/ 返回 401。
+- 登录/注册页没有手机号和验证码入口。
 ```
 
 ---
@@ -563,7 +571,7 @@ Codex 每轮完成后必须输出：
 
 ```text
 用户打开微信小程序
-→ 使用手机号或微信登录
+→ 使用邮箱注册或邮箱密码登录
 → 创建一只宠物
 → 添加疫苗/驱虫/体重记录
 → 进入 AI 健康咨询

@@ -6,8 +6,9 @@ export interface ApiResponse<T> {
 
 export interface RequestOptions {
   method?: "GET" | "POST" | "PUT" | "DELETE";
-  data?: Record<string, unknown>;
+  data?: object;
   loading?: boolean;
+  auth?: boolean;
 }
 
 const API_BASE_URL =
@@ -34,6 +35,7 @@ export function request<T>(url: string, options: RequestOptions = {}) {
 
         if (response.statusCode === 401) {
           uni.removeStorageSync("access_token");
+          uni.removeStorageSync("refresh_token");
         }
 
         if (response.statusCode >= 200 && response.statusCode < 300 && body.code === 0) {

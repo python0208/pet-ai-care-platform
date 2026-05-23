@@ -6,6 +6,16 @@
   </view>
 </template>
 
+<script setup lang="ts">
+import { onShow } from "@dcloudio/uni-app";
+
+import { requireAuth } from "@/utils/auth";
+
+onShow(() => {
+  requireAuth();
+});
+</script>
+
 <style scoped>
 .placeholder-page {
   min-height: 100vh;

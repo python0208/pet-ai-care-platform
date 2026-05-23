@@ -10,6 +10,7 @@ env = environ.Env(
     DB_PORT=(int, 3306),
     JWT_ACCESS_TOKEN_LIFETIME_MINUTES=(int, 60),
     JWT_REFRESH_TOKEN_LIFETIME_DAYS=(int, 7),
+    WECHAT_LOGIN_MOCK=(bool, True),
 )
 environ.Env.read_env(BASE_DIR / ".env")
 
@@ -28,6 +29,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework_simplejwt",
     "apps.common",
+    "apps.users",
 ]
 
 MIDDLEWARE = [
@@ -85,6 +87,10 @@ MEDIA_URL = env("MEDIA_URL", default="/media/")
 MEDIA_ROOT = BASE_DIR / env("MEDIA_ROOT", default="media")
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+AUTH_USER_MODEL = "users.User"
+WECHAT_LOGIN_MOCK = env("WECHAT_LOGIN_MOCK")
+WECHAT_MINI_APPID = env("WECHAT_MINI_APPID", default="")
+WECHAT_MINI_SECRET = env("WECHAT_MINI_SECRET", default="")
 
 CORS_ALLOWED_ORIGINS = env.list(
     "CORS_ALLOWED_ORIGINS",

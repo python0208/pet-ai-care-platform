@@ -135,7 +135,7 @@ pet-ai-care-platform/
 
 ```text
 common         通用模型、响应、分页、权限、异常
-users          用户、认证、微信登录、手机号登录
+users          用户、认证、邮箱注册、邮箱密码登录、微信登录预留
 pets           宠物档案、健康记录、体重记录
 ai_chat        AI 会话、消息、咨询结果、提示词
 services       生活服务、服务商、预约
@@ -144,6 +144,8 @@ payments       支付单、支付回调、支付日志
 files          文件上传
 notifications  消息提醒、疫苗驱虫提醒
 ```
+
+认证模块当前统一使用邮箱注册、邮箱密码登录和微信小程序登录预留；当前 MVP 不使用邮箱验证码，手机号不作为登录方式。手机号如后续出现，只能作为收货地址、服务预约联系人等业务联系方式。
 
 ### 5.2 接口前缀
 
@@ -156,7 +158,7 @@ notifications  消息提醒、疫苗驱虫提醒
 示例：
 
 ```text
-/api/auth/sms-login/
+/api/auth/login/
 /api/pets/
 /api/ai/consult/
 /api/shop/products/
@@ -402,7 +404,7 @@ Codex 不允许：
 4. 提交信息使用中文或英文均可，但必须清楚说明本次完成的 Phase。
 5. 推荐提交格式：
    - chore: initialize project structure
-   - feat(auth): add phone and wechat login
+   - feat(auth): add email auth and wechat login placeholder
    - feat(pets): add pet profile management
    - feat(ai): add AI health consultation
    - feat(shop): add product and order flow

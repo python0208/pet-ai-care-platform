@@ -7,6 +7,12 @@
       }
     },
     {
+      "path": "pages/auth/index",
+      "style": {
+        "navigationStyle": "custom"
+      }
+    },
+    {
       "path": "pages/pets/index",
       "style": {
         "navigationBarTitleText": "档案"

@@ -75,8 +75,6 @@ Content-Type: multipart/form-data
 ```text
 0       success
 40001   参数错误
-40002   验证码错误
-40003   验证码过期
 40101   未登录
 40301   无权限
 40401   资源不存在
@@ -110,48 +108,18 @@ Content-Type: multipart/form-data
 
 ## 3. 用户认证 API
 
-### POST /api/auth/sms/send/
+### POST /api/auth/register/
 
-发送验证码。
-
-请求：
-
-```json
-{
-  "phone": "13800000000",
-  "scene": "login"
-}
-```
-
-响应：
-
-```json
-{
-  "code": 0,
-  "message": "success",
-  "data": {
-    "debug_code": "123456"
-  }
-}
-```
-
-说明：
-
-- 开发环境可返回 debug_code。
-- 生产环境不能返回验证码。
-
----
-
-### POST /api/auth/sms-login/
-
-手机号验证码登录。
+邮箱注册。本轮不使用邮箱验证码，注册成功后直接返回 JWT。
 
 请求：
 
 ```json
 {
-  "phone": "13800000000",
-  "code": "123456"
+  "email": "user@example.com",
+  "password": "StrongPass123",
+  "confirm_password": "StrongPass123",
+  "nickname": "宠护用户"
 }
 ```
 
@@ -166,9 +134,74 @@ Content-Type: multipart/form-data
     "refresh_token": "xxx",
     "user": {
       "id": 1,
-      "phone": "13800000000",
-      "nickname": "用户"
+      "email": "user@example.com",
+      "nickname": "宠护用户",
+      "avatar": "",
+      "gender": "unknown",
+      "is_email_verified": false
     }
+  }
+}
+```
+
+---
+
+### POST /api/auth/login/
+
+邮箱密码登录。本轮不做登录时自动注册，不要求邮箱已验证。
+
+请求：
+
+```json
+{
+  "email": "user@example.com",
+  "password": "StrongPass123"
+}
+```
+
+响应：
+
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": {
+    "access_token": "xxx",
+    "refresh_token": "xxx",
+    "user": {
+      "id": 1,
+      "email": "user@example.com",
+      "nickname": "宠护用户",
+      "avatar": "",
+      "gender": "unknown",
+      "is_email_verified": false
+    }
+  }
+}
+```
+
+---
+
+### POST /api/auth/token/refresh/
+
+刷新 access token。
+
+请求：
+
+```json
+{
+  "refresh": "xxx"
+}
+```
+
+响应：
+
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": {
+    "access": "xxx"
   }
 }
 ```
@@ -238,10 +271,11 @@ Content-Type: multipart/form-data
   "message": "success",
   "data": {
     "id": 1,
-    "phone": "13800000000",
+    "email": "user@example.com",
     "nickname": "用户",
     "avatar": "",
-    "gender": "unknown"
+    "gender": "unknown",
+    "is_email_verified": false
   }
 }
 ```

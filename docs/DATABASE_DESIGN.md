@@ -42,13 +42,14 @@ PaymentOrder 1 - 1 ShopOrder 或 ServiceBooking
 
 ```text
 id                  bigint / uuid
-phone               varchar(20), unique, nullable
+email               varchar(254), unique
 nickname            varchar(64)
 avatar              varchar/url
 gender              varchar(20)
 wx_openid           varchar(128), unique, nullable
 wx_unionid          varchar(128), nullable
 app_openid          varchar(128), nullable
+is_email_verified   bool
 is_active           bool
 is_staff            bool
 is_superuser        bool
@@ -60,31 +61,10 @@ updated_at          datetime
 说明：
 
 - 第一阶段可以使用 Django 自定义用户模型。
-- 登录以手机号和 wx_openid 为主。
+- 登录以 email 和密码为主，微信小程序登录预留 wx_openid。
+- 当前 MVP 不使用邮箱验证码，is_email_verified 默认 false 且不影响登录。
+- 手机号不属于认证模块字段，只能在收货地址、服务预约联系人等业务联系方式中出现。
 - 用户资料不要和宠物资料混在一起。
-
----
-
-## 2.2 SmsCode
-
-验证码表。
-
-```text
-id          bigint
-phone       varchar(20)
-code        varchar(10)
-scene       varchar(32)    # login/register/reset
-is_used     bool
-expired_at  datetime
-created_at  datetime
-```
-
-规则：
-
-1. 开发环境固定验证码可以是 `123456`。
-2. 生产环境必须接短信服务。
-3. 验证码使用后标记为 `is_used=True`。
-4. 验证码必须有过期时间。
 
 ---
 
@@ -625,7 +605,7 @@ updated_at    datetime
 建议添加索引：
 
 ```text
-User.phone
+User.email
 User.wx_openid
 
 Pet.owner_id
