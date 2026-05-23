@@ -126,6 +126,8 @@ AI 健康咨询
 - 体重曲线
 - 首页真实宠物卡片
 - 无宠物时的添加引导
+- 本地相册或相机选择宠物头像并上传
+- 档案管理页高保真卡片化展示
 
 ### 宠物基础字段
 
@@ -153,6 +155,19 @@ AI 健康咨询
 ```text
 frontend/src/static/images/default-pet-avatar.svg
 ```
+
+宠物头像上传要求：
+
+```text
+用户点击头像
+→ 从相册或相机选择图片
+→ 上传到 /api/files/upload/
+→ Pet.avatar 保存后端返回 URL
+```
+
+只支持 jpg、jpeg、png、webp，单文件最大 5MB。不得保存前端本地临时路径。
+
+档案管理页按照 `docs/page/archive_page.png` 进行重构，资源优先使用 `archive_page_assets_pack/`，运行时复制到 `frontend/src/static/icons/archive/`。页面包含宠物资料主卡片、档案模块宫格、近期记录和体重趋势。
 
 ### 健康记录类型
 

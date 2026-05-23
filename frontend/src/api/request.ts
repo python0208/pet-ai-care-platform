@@ -13,6 +13,7 @@ export interface RequestOptions {
 
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000/api";
+export const API_ORIGIN = API_BASE_URL.replace(/\/api\/?$/, "");
 
 export function request<T>(url: string, options: RequestOptions = {}) {
   const token = uni.getStorageSync("access_token");
@@ -57,4 +58,14 @@ export function request<T>(url: string, options: RequestOptions = {}) {
 
 export function getHealthStatus() {
   return request<{ status: string }>("/health/");
+}
+
+export function resolveMediaUrl(url?: string | null) {
+  if (!url) {
+    return "";
+  }
+  if (/^https?:\/\//.test(url)) {
+    return url;
+  }
+  return `${API_ORIGIN}${url.startsWith("/") ? url : `/${url}`}`;
 }

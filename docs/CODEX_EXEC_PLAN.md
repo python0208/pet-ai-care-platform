@@ -239,6 +239,39 @@
 
 ---
 
+## Phase 2.1：宠物头像本地上传与档案页美化
+
+### 目标
+
+补齐宠物头像本地上传能力，并按照 `docs/page/archive_page.png` 重构档案管理页视觉。
+
+### 后端任务
+
+1. 创建 `apps/files/`。
+2. 实现 `UploadedFile` 模型。
+3. 实现 `POST /api/files/upload/`。
+4. 上传接口必须登录，只支持 multipart/form-data。
+5. 仅允许 jpg、jpeg、png、webp 图片。
+6. 单文件最大 5MB。
+7. 上传成功返回文件 URL。
+8. DEBUG 模式支持访问 `MEDIA_URL`。
+9. `media/` 和 `staticfiles/` 不进入 Git。
+10. 补充上传接口测试。
+
+### 前端任务
+
+1. 宠物新增/编辑页支持点击头像选择本地图片。
+2. 使用 `uni.chooseImage` 选择相册或相机图片。
+3. 使用 `uni.uploadFile` 上传到 `/api/files/upload/`。
+4. 上传时带 `Authorization: Bearer <access_token>`。
+5. 上传成功后将返回 URL 写入 `Pet.avatar`。
+6. 不能保存本地临时路径。
+7. 档案管理页使用 `archive_page_assets_pack/` 资源，运行时复制到 `frontend/src/static/icons/archive/`。
+8. 档案页包含宠物资料主卡片、6 个档案模块、近期记录、体重趋势。
+9. 默认宠物头像 fallback 为 `frontend/src/static/images/default-pet-avatar.svg`。
+
+---
+
 ## Phase 3：AI 健康咨询
 
 ### 目标

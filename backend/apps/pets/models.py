@@ -36,7 +36,7 @@ class Pet(TimeStampedModel):
         default=Gender.UNKNOWN,
     )
     birthday = models.DateField("生日", null=True, blank=True)
-    avatar = models.URLField("宠物头像", max_length=500, blank=True)
+    avatar = models.CharField("宠物头像", max_length=500, blank=True)
     color = models.CharField("毛色", max_length=64, blank=True)
     weight = models.DecimalField(
         "当前体重",

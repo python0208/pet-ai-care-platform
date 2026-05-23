@@ -2,7 +2,7 @@
   <scroll-view class="detail-page" scroll-y>
     <view class="page-inner" v-if="pet">
       <view class="profile-card">
-        <image class="avatar" :src="pet.avatar || '/static/images/default-pet-avatar.svg'" mode="aspectFill" />
+        <image class="avatar" :src="petAvatarUrl" mode="aspectFill" />
         <view class="profile-main">
           <text class="name">{{ pet.name }}</text>
           <text class="meta">{{ speciesLabel(pet.species) }} · {{ pet.breed || "未填写品种" }} · {{ ageLabel }}</text>
@@ -44,6 +44,7 @@ import { onLoad, onShow } from "@dcloudio/uni-app";
 import { computed, ref } from "vue";
 
 import { deletePet, getPet } from "@/api/pets";
+import { resolveMediaUrl } from "@/api/request";
 import type { PetDetail, PetGender, PetSpecies } from "@/types/pet";
 import { requireAuth } from "@/utils/auth";
 
@@ -59,6 +60,9 @@ const ageLabel = computed(() => {
   const months = Math.max(0, (now.getFullYear() - birthday.getFullYear()) * 12 + now.getMonth() - birthday.getMonth());
   return `${Math.floor(months / 12)}岁${months % 12}个月`;
 });
+const petAvatarUrl = computed(
+  () => resolveMediaUrl(pet.value?.avatar) || "/static/images/default-pet-avatar.svg",
+);
 
 onLoad((query) => {
   petId.value = String(query?.id || "");

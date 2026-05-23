@@ -1,0 +1,128 @@
+[
+  {
+    "name": "default_pet_avatar",
+    "svg": "svg/default_pet_avatar.svg",
+    "png": "png/default_pet_avatar.png",
+    "usage": "默认宠物头像，pet.avatar 为空时使用"
+  },
+  {
+    "name": "archive_folder",
+    "svg": "svg/archive_folder.svg",
+    "png": "png/archive_folder.png",
+    "usage": "档案模块：基础信息"
+  },
+  {
+    "name": "vaccine_record",
+    "svg": "svg/vaccine_record.svg",
+    "png": "png/vaccine_record.png",
+    "usage": "档案模块：疫苗记录 / 近期疫苗记录"
+  },
+  {
+    "name": "deworm_record",
+    "svg": "svg/deworm_record.svg",
+    "png": "png/deworm_record.png",
+    "usage": "档案模块：驱虫记录 / 驱虫提醒"
+  },
+  {
+    "name": "medical_record",
+    "svg": "svg/medical_record.svg",
+    "png": "png/medical_record.png",
+    "usage": "档案模块：就诊记录"
+  },
+  {
+    "name": "allergy_shield",
+    "svg": "svg/allergy_shield.svg",
+    "png": "png/allergy_shield.png",
+    "usage": "档案模块：过敏史"
+  },
+  {
+    "name": "weight_curve",
+    "svg": "svg/weight_curve.svg",
+    "png": "png/weight_curve.png",
+    "usage": "档案模块：体重曲线 / 体重趋势"
+  },
+  {
+    "name": "neutered",
+    "svg": "svg/neutered.svg",
+    "png": "png/neutered.png",
+    "usage": "状态标签：已绝育"
+  },
+  {
+    "name": "healthy_shield",
+    "svg": "svg/healthy_shield.svg",
+    "png": "png/healthy_shield.png",
+    "usage": "状态标签：健康中"
+  },
+  {
+    "name": "recent_clock",
+    "svg": "svg/recent_clock.svg",
+    "png": "png/recent_clock.png",
+    "usage": "近期记录辅助图标"
+  },
+  {
+    "name": "add_pet",
+    "svg": "svg/add_pet.svg",
+    "png": "png/add_pet.png",
+    "usage": "新增宠物按钮/空状态图标"
+  },
+  {
+    "name": "camera_badge",
+    "svg": "svg/camera_badge.svg",
+    "png": "png/camera_badge.png",
+    "usage": "头像右下角相机图标"
+  },
+  {
+    "name": "chevron_right",
+    "svg": "svg/chevron_right.svg",
+    "png": "png/chevron_right.png",
+    "usage": "右箭头 / 全部记录 / 详情入口"
+  },
+  {
+    "name": "calendar",
+    "svg": "svg/calendar.svg",
+    "png": "png/calendar.png",
+    "usage": "日期/记录时间图标"
+  },
+  {
+    "name": "empty_pet",
+    "svg": "svg/empty_pet.svg",
+    "png": "png/empty_pet.png",
+    "usage": "无宠物档案空状态插画"
+  },
+  {
+    "name": "tab_home",
+    "svg": "svg/tab_home.svg",
+    "png": "png/tab_home.png",
+    "usage": "底部导航：首页"
+  },
+  {
+    "name": "tab_archive_active",
+    "svg": "svg/tab_archive_active.svg",
+    "png": "png/tab_archive_active.png",
+    "usage": "底部导航：档案 active"
+  },
+  {
+    "name": "tab_ai",
+    "svg": "svg/tab_ai.svg",
+    "png": "png/tab_ai.png",
+    "usage": "底部导航：AI咨询"
+  },
+  {
+    "name": "tab_service",
+    "svg": "svg/tab_service.svg",
+    "png": "png/tab_service.png",
+    "usage": "底部导航：服务"
+  },
+  {
+    "name": "tab_mine",
+    "svg": "svg/tab_mine.svg",
+    "png": "png/tab_mine.png",
+    "usage": "底部导航：我的"
+  },
+  {
+    "name": "paw_accent",
+    "svg": "svg/paw_accent.svg",
+    "png": "png/paw_accent.png",
+    "usage": "装饰爪印"
+  }
+]

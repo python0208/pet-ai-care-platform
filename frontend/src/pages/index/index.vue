@@ -26,7 +26,7 @@
         <view class="pet-avatar-wrap">
           <image
             class="pet-avatar"
-            :src="homePet?.avatar || '/static/images/default-pet-avatar.svg'"
+            :src="homePetAvatarUrl"
             mode="aspectFill"
           />
           <view class="camera-dot">
@@ -151,7 +151,7 @@ import { onShow } from "@dcloudio/uni-app";
 import { computed, onMounted, ref } from "vue";
 
 import { getPet, getPets } from "@/api/pets";
-import { getHealthStatus } from "@/api/request";
+import { getHealthStatus, resolveMediaUrl } from "@/api/request";
 import { useAppStore } from "@/stores/app";
 import type { Pet, PetDetail, PetReminder } from "@/types/pet";
 
@@ -253,6 +253,9 @@ const genderSymbol = computed(() => {
   return "·";
 });
 const homeWeight = computed(() => homePet.value?.weight || "暂无");
+const homePetAvatarUrl = computed(
+  () => resolveMediaUrl(homePet.value?.avatar) || "/static/images/default-pet-avatar.svg",
+);
 const petMeta = computed(() => {
   if (!homePet.value) {
     return "";

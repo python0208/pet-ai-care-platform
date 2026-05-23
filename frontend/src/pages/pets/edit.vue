@@ -2,7 +2,10 @@
   <scroll-view class="form-page" scroll-y>
     <view class="page-inner">
       <view class="hero">
-        <image :src="form.avatar || '/static/images/default-pet-avatar.svg'" mode="aspectFill" />
+        <view class="avatar-picker" @tap="handleAvatarUpload">
+          <image :src="avatarDisplayUrl" mode="aspectFill" />
+          <image class="camera-badge" src="/static/icons/archive/camera_badge.png" mode="aspectFit" />
+        </view>
         <view>
           <text class="title">{{ isEdit ? "编辑宠物档案" : "新增宠物档案" }}</text>
           <text class="subtitle">资料越完整，提醒和后续咨询越贴心</text>
@@ -34,10 +37,7 @@
           <text>生日</text>
           <input v-model="form.birthday" placeholder="YYYY-MM-DD" />
         </label>
-        <label class="field">
-          <text>头像 URL</text>
-          <input v-model="form.avatar" placeholder="可为空，默认显示宠物头像" />
-        </label>
+        <view class="avatar-tip">点击头像可从相册或相机更换宠物头像</view>
         <label class="field">
           <text>毛色</text>
           <input v-model="form.color" placeholder="例如：金色" />
@@ -66,7 +66,9 @@ import { onLoad, onShow } from "@dcloudio/uni-app";
 import { computed, reactive, ref } from "vue";
 
 import { createPet, getPet, updatePet } from "@/api/pets";
+import { resolveMediaUrl } from "@/api/request";
 import type { PetGender, PetSpecies } from "@/types/pet";
+import { choosePetAvatar, uploadPetAvatar } from "@/utils/upload";
 import { requireAuth } from "@/utils/auth";
 
 const petId = ref("");
@@ -97,6 +99,10 @@ const genderOptions = [
 const isEdit = computed(() => Boolean(petId.value));
 const speciesIndex = computed(() => speciesOptions.findIndex((item) => item.value === form.species));
 const genderIndex = computed(() => genderOptions.findIndex((item) => item.value === form.gender));
+const avatarPreview = ref("");
+const avatarDisplayUrl = computed(
+  () => avatarPreview.value || resolveMediaUrl(form.avatar) || "/static/images/default-pet-avatar.svg",
+);
 
 onLoad((query) => {
   petId.value = String(query?.id || "");
@@ -115,9 +121,16 @@ async function loadPet() {
   try {
     const response = await getPet(petId.value);
     Object.assign(form, {
-      ...response.data,
+      name: response.data.name,
+      species: response.data.species,
+      breed: response.data.breed,
+      gender: response.data.gender,
       birthday: response.data.birthday || "",
+      avatar: response.data.avatar || "",
+      color: response.data.color,
       weight: response.data.weight || "",
+      neutered: response.data.neutered,
+      remark: response.data.remark,
     });
   } catch (error) {
     uni.showToast({ title: "档案加载失败", icon: "none" });
@@ -142,9 +155,16 @@ async function submit() {
     return;
   }
   const payload = {
-    ...form,
+    name: form.name,
+    species: form.species,
+    breed: form.breed,
+    gender: form.gender,
     birthday: form.birthday || null,
+    avatar: form.avatar,
+    color: form.color,
     weight: form.weight || null,
+    neutered: form.neutered,
+    remark: form.remark,
   };
   try {
     const response = isEdit.value
@@ -154,6 +174,17 @@ async function submit() {
     uni.redirectTo({ url: `/pages/pets/detail?id=${response.data.id}` });
   } catch (error) {
     uni.showToast({ title: "保存失败，请检查表单", icon: "none" });
+  }
+}
+
+async function handleAvatarUpload() {
+  try {
+    const filePath = await choosePetAvatar();
+    avatarPreview.value = filePath;
+    form.avatar = await uploadPetAvatar(filePath);
+    uni.showToast({ title: "头像已上传", icon: "success" });
+  } catch (error) {
+    uni.showToast({ title: "头像上传失败", icon: "none" });
   }
 }
 </script>
@@ -175,11 +206,28 @@ async function submit() {
   margin-bottom: 26rpx;
 }
 
-.hero image {
+.avatar-picker {
+  position: relative;
+  width: 116rpx;
+  height: 116rpx;
+  flex: 0 0 116rpx;
+}
+
+.avatar-picker > image:first-child {
   width: 116rpx;
   height: 116rpx;
   border-radius: 999rpx;
   background: #eaf6ff;
+}
+
+.camera-badge {
+  position: absolute;
+  right: -4rpx;
+  bottom: -4rpx;
+  width: 42rpx;
+  height: 42rpx;
+  border-radius: 999rpx;
+  box-shadow: 0 8rpx 20rpx rgba(31, 140, 255, 0.2);
 }
 
 .title,
@@ -204,6 +252,16 @@ async function submit() {
   border-radius: 34rpx;
   background: rgba(255, 255, 255, 0.95);
   box-shadow: 0 18rpx 46rpx rgba(30, 119, 188, 0.1);
+}
+
+.avatar-tip {
+  margin-bottom: 22rpx;
+  padding: 18rpx 22rpx;
+  border-radius: 22rpx;
+  background: #eef8ff;
+  color: #637086;
+  font-size: 24rpx;
+  line-height: 1.45;
 }
 
 .field {

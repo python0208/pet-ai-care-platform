@@ -82,7 +82,7 @@ class PetApiTests(APITestCase):
 
         response = self.client.patch(
             reverse("pet-detail", args=[pet.id]),
-            {"name": "团团", "weight": "4.80"},
+            {"name": "团团", "weight": "4.80", "avatar": "/media/uploads/pet/avatar.png"},
             format="json",
         )
 
@@ -90,6 +90,7 @@ class PetApiTests(APITestCase):
         pet.refresh_from_db()
         self.assertEqual(pet.name, "团团")
         self.assertEqual(str(pet.weight), "4.80")
+        self.assertEqual(pet.avatar, "/media/uploads/pet/avatar.png")
 
     def test_user_can_delete_own_pet(self):
         pet = self.create_pet()

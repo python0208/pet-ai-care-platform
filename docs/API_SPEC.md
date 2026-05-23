@@ -590,7 +590,16 @@ frontend/src/static/images/default-pet-avatar.svg
 
 ### POST /api/files/upload/
 
-上传文件。
+上传图片文件。必须登录，使用 `multipart/form-data`，当前用于宠物头像等图片场景。
+
+限制：
+
+```text
+允许类型：jpg / jpeg / png / webp
+最大大小：5MB
+文件字段：file
+宠物头像 file_type：pet
+```
 
 请求：
 
@@ -599,6 +608,8 @@ multipart/form-data
 file=<image>
 file_type=pet
 ```
+
+上传成功后，前端将响应中的 `url` 写入 `Pet.avatar`。不要把 `uni.chooseImage` 返回的本地临时路径保存到数据库。
 
 响应：
 
@@ -610,6 +621,16 @@ file_type=pet
     "id": 1,
     "url": "https://example.com/media/xxx.jpg"
   }
+}
+```
+
+失败时保持统一错误格式：
+
+```json
+{
+  "code": 40001,
+  "message": "参数错误",
+  "errors": {}
 }
 ```
 

@@ -75,7 +75,7 @@ pet-ai-care-platform/
 - 编辑宠物
 - 删除宠物
 - 宠物详情
-- 宠物头像 URL 记录与前端默认头像 fallback
+- 宠物头像本地相册/相机选择、后端上传与前端默认头像 fallback
 - 疫苗记录
 - 驱虫记录
 - 就诊记录
@@ -89,6 +89,8 @@ pet-ai-care-platform/
 ```text
 frontend/src/static/images/default-pet-avatar.svg
 ```
+
+宠物头像通过 `/api/files/upload/` 上传，当前只支持 `jpg`、`jpeg`、`png`、`webp`，单文件最大 5MB。`Pet.avatar` 只保存上传接口返回的 URL，不能保存前端本地临时路径；本地上传文件落在 `media/`，该目录不进入 Git。档案管理页按 `docs/page/archive_page.png` 重构，运行时使用复制到 `frontend/src/static/icons/archive/` 的 `archive_page_assets_pack/` 资源。
 
 ### 3.3 AI 健康咨询
 

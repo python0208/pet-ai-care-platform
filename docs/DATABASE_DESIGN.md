@@ -96,7 +96,8 @@ updated_at  datetime
 - owner_id 必须来自 request.user。
 - 用户只能访问自己的宠物。
 - 删除宠物可先物理删除，后期改软删除。
-- pet.avatar 可为空，前端默认头像为 `frontend/src/static/images/default-pet-avatar.svg`。
+- pet.avatar 可为空；如果有值，保存 `/api/files/upload/` 返回的 URL，不能保存前端本地临时路径。
+- 前端默认头像为 `frontend/src/static/images/default-pet-avatar.svg`。
 
 ---
 
@@ -135,7 +136,7 @@ other     其他
 - 健康记录必须属于某只宠物。
 - 用户只能操作自己宠物下的健康记录。
 - attachments 存储图片 URL 列表。
-- 当前 Phase 2 不开发文件上传，只保存 URL 列表。
+- 当前健康记录附件暂不做页面上传；文件上传能力先用于宠物头像。
 
 ---
 
@@ -560,7 +561,10 @@ created_at    datetime
 规则：
 
 - 限制图片类型。
-- 限制单文件大小。
+- 只支持 jpg、jpeg、png、webp。
+- 限制单文件大小为 5MB。
+- 上传文件保存在 `MEDIA_ROOT/uploads/`，`media/` 不进入 Git。
+- 宠物头像上传时 `file_type=pet`，Pet.avatar 保存返回的 file_url。
 - 生产环境建议使用对象存储。
 
 ---
