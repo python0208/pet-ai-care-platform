@@ -1,0 +1,18 @@
+{
+  "name": "宠护星球",
+  "appid": "__UNI__PETAI",
+  "description": "宠物 AI 养护平台",
+  "versionName": "0.1.0",
+  "versionCode": "100",
+  "transformPx": false,
+  "mp-weixin": {
+    "appid": "",
+    "setting": {
+      "urlCheck": false
+    },
+    "usingComponents": true
+  },
+  "h5": {
+    "title": "宠护星球"
+  }
+}

@@ -1,0 +1,72 @@
+{
+  "pages": [
+    {
+      "path": "pages/index/index",
+      "style": {
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/pets/index",
+      "style": {
+        "navigationBarTitleText": "档案"
+      }
+    },
+    {
+      "path": "pages/ai/index",
+      "style": {
+        "navigationBarTitleText": "AI咨询"
+      }
+    },
+    {
+      "path": "pages/services/index",
+      "style": {
+        "navigationBarTitleText": "服务"
+      }
+    },
+    {
+      "path": "pages/user/index",
+      "style": {
+        "navigationBarTitleText": "我的"
+      }
+    }
+  ],
+  "tabBar": {
+    "color": "#7d8799",
+    "selectedColor": "#1f8cff",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页",
+        "iconPath": "static/icons/png/home.png",
+        "selectedIconPath": "static/icons/png/home.png"
+      },
+      {
+        "pagePath": "pages/pets/index",
+        "text": "档案",
+        "iconPath": "static/icons/png/file_paw.png",
+        "selectedIconPath": "static/icons/png/file_paw.png"
+      },
+      {
+        "pagePath": "pages/ai/index",
+        "text": "AI咨询",
+        "iconPath": "static/icons/png/ai_robot.png",
+        "selectedIconPath": "static/icons/png/ai_robot.png"
+      },
+      {
+        "pagePath": "pages/services/index",
+        "text": "服务",
+        "iconPath": "static/icons/png/service_heart.png",
+        "selectedIconPath": "static/icons/png/service_heart.png"
+      },
+      {
+        "pagePath": "pages/user/index",
+        "text": "我的",
+        "iconPath": "static/icons/png/profile_smile.png",
+        "selectedIconPath": "static/icons/png/profile_smile.png"
+      }
+    ]
+  }
+}

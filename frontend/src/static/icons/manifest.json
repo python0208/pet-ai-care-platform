@@ -1,0 +1,116 @@
+[
+  {
+    "name": "search",
+    "svg": "svg/search.svg",
+    "png": "png/search.png",
+    "description": "顶部搜索图标"
+  },
+  {
+    "name": "bell",
+    "svg": "svg/bell.svg",
+    "png": "png/bell.png",
+    "description": "顶部通知铃铛图标，包含红点"
+  },
+  {
+    "name": "camera",
+    "svg": "svg/camera.svg",
+    "png": "png/camera.png",
+    "description": "宠物头像拍照/更换头像图标"
+  },
+  {
+    "name": "deworm_bug",
+    "svg": "svg/deworm_bug.svg",
+    "png": "png/deworm_bug.png",
+    "description": "驱虫提醒/驱虫记录图标"
+  },
+  {
+    "name": "vaccine_syringe",
+    "svg": "svg/vaccine_syringe.svg",
+    "png": "png/vaccine_syringe.png",
+    "description": "疫苗提醒图标"
+  },
+  {
+    "name": "ai_robot",
+    "svg": "svg/ai_robot.svg",
+    "png": "png/ai_robot.png",
+    "description": "AI咨询/机器人图标"
+  },
+  {
+    "name": "vaccine_record",
+    "svg": "svg/vaccine_record.svg",
+    "png": "png/vaccine_record.png",
+    "description": "疫苗记录卡片图标"
+  },
+  {
+    "name": "weight_chart",
+    "svg": "svg/weight_chart.svg",
+    "png": "png/weight_chart.png",
+    "description": "体重曲线图标"
+  },
+  {
+    "name": "pet_profile",
+    "svg": "svg/pet_profile.svg",
+    "png": "png/pet_profile.png",
+    "description": "宠物档案快捷入口图标"
+  },
+  {
+    "name": "location_hospital",
+    "svg": "svg/location_hospital.svg",
+    "png": "png/location_hospital.png",
+    "description": "附近医院/定位图标"
+  },
+  {
+    "name": "shop_bag",
+    "svg": "svg/shop_bag.svg",
+    "png": "png/shop_bag.png",
+    "description": "商城入口/精选商城图标"
+  },
+  {
+    "name": "cart",
+    "svg": "svg/cart.svg",
+    "png": "png/cart.png",
+    "description": "商品卡片加入购物车按钮图标"
+  },
+  {
+    "name": "home",
+    "svg": "svg/home.svg",
+    "png": "png/home.png",
+    "description": "底部导航首页图标"
+  },
+  {
+    "name": "file_paw",
+    "svg": "svg/file_paw.svg",
+    "png": "png/file_paw.png",
+    "description": "底部导航档案图标"
+  },
+  {
+    "name": "service_heart",
+    "svg": "svg/service_heart.svg",
+    "png": "png/service_heart.png",
+    "description": "底部导航服务图标"
+  },
+  {
+    "name": "profile_smile",
+    "svg": "svg/profile_smile.svg",
+    "png": "png/profile_smile.png",
+    "description": "底部导航我的图标"
+  },
+  {
+    "name": "paw",
+    "svg": "svg/paw.svg",
+    "png": "png/paw.png",
+    "description": "装饰爪印图标"
+  },
+  {
+    "name": "chevron_right",
+    "svg": "svg/chevron_right.svg",
+    "png": "png/chevron_right.png",
+    "description": "右箭头/更多图标"
+  },
+  {
+    "name": "logo_star_planet",
+    "svg": "svg/logo_star_planet.svg",
+    "png": "png/logo_star_planet.png",
+    "description": "品牌星球装饰图标"
+  }
+]
