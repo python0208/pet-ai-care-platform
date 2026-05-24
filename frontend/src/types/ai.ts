@@ -8,6 +8,7 @@ export interface AIConversation {
   model_provider: string;
   model_name: string;
   status: "active" | "archived" | "deleted";
+  pending_action_count?: number;
   created_at: string;
   updated_at: string;
 }

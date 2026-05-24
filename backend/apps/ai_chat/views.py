@@ -1,3 +1,4 @@
+from django.db.models import Count, Q
 from rest_framework import permissions, status
 from rest_framework.views import APIView
 
@@ -31,7 +32,12 @@ class AIConversationListCreateView(APIView):
         conversations = AIConversation.objects.filter(
             user=request.user,
             status__in=[AIConversation.Status.ACTIVE, AIConversation.Status.ARCHIVED],
-        ).select_related("pet")
+        ).select_related("pet").annotate(
+            pending_action_count=Count(
+                "action_drafts",
+                filter=Q(action_drafts__status=AIActionDraft.Status.PENDING),
+            )
+        )
         return success_response(AIConversationSerializer(conversations, many=True).data)
 
     def post(self, request):

@@ -100,6 +100,39 @@ class AIChatApiTests(APITestCase):
         self.assertEqual(response.json()["code"], 0)
         self.assertEqual(AIConversation.objects.count(), 1)
 
+    def test_conversation_list_includes_pending_action_count(self):
+        conversation = AIConversation.objects.create(user=self.user, pet=self.pet, title="记录疫苗")
+        AIActionDraft.objects.create(
+            user=self.user,
+            pet=self.pet,
+            conversation=conversation,
+            action_type=AIActionDraft.ActionType.CREATE_HEALTH_RECORD,
+            display_title="建议添加疫苗记录",
+            confirm_text="确认保存疫苗记录？",
+            payload={
+                "pet_id": self.pet.id,
+                "record_type": "vaccine",
+                "title": "疫苗记录",
+                "record_date": "2026-05-24",
+            },
+        )
+        AIActionDraft.objects.create(
+            user=self.user,
+            pet=self.pet,
+            conversation=conversation,
+            action_type=AIActionDraft.ActionType.CREATE_WEIGHT_RECORD,
+            display_title="已保存体重记录",
+            confirm_text="确认？",
+            status=AIActionDraft.Status.EXECUTED,
+            payload={"pet_id": self.pet.id, "weight": "4.80", "record_date": "2026-05-24"},
+        )
+        self.authenticate()
+
+        response = self.client.get(reverse("ai-conversation-list"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["data"][0]["pending_action_count"], 1)
+
     def test_user_cannot_access_other_users_ai_conversation(self):
         conversation = AIConversation.objects.create(
             user=self.other_user,

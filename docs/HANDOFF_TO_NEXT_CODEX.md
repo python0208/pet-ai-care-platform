@@ -168,6 +168,24 @@
 - action draft 状态以前端收到的后端 `status` 为准：`pending` 显示待确认和操作按钮，`executed` 显示已保存，`cancelled` 显示已取消，`failed` 显示保存失败。
 - 当前阶段仍使用非流式 HTTP 请求返回完整 AI 结果，不做 SSE/WebSocket 流式输出。
 
+### Phase 3.3：AI 咨询首页单页结构压缩与移动端体验优化
+
+状态：本轮进行中，未提交。
+
+本轮目标：
+
+- AI 咨询首页仍保持为 `pages/ai/index` 单页滚动结构，不拆分路由。
+- 按 `docs/page/ai_page.png` 原型重构 AI 首页视觉。
+- 优先使用 `ai_consult_page_icon_pack/` 图标资源，运行时图标复制到 `frontend/src/static/icons/ai/`。
+- 顶部 Hero、免责声明和宠物选择区压缩为轻量结构，减少首屏高度占用。
+- 宠物选择区改为横向轻量头像列表，并保留添加入口。
+- 新咨询入口改为输入式入口，点击后带当前 `selectedPetId` 进入聊天详情页。
+- 快捷问题改为“健康咨询 / 日常养护 / 档案记录”分类 tab + 当前分类横向 chips，避免三类问题全部展开。
+- 历史咨询区提前展示，列表显示会话标题、宠物名称、日期、类型标签和待确认记录提示。
+- 页面底部为 TabBar 和 safe area 预留空间，避免最后一条历史咨询被遮挡。
+- 会话列表轻量补充 `pending_action_count`，不破坏旧字段和 `/api/ai/consult/`。
+- 当前阶段仍不做 SSE/WebSocket 流式输出。
+
 下一窗口如果执行 Phase 3，应使用以下规划信息：
 
 - Provider 需要可替换模型。

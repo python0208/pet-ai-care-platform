@@ -254,6 +254,8 @@ cancelled 已取消，隐藏操作按钮
 failed    保存失败，显示失败原因
 ```
 
+Phase 3.3 对 AI 咨询首页进行单页压缩，并按 `docs/page/ai_page.png` 原型重构视觉：页面仍是一个滚动首页，不拆分路由。顶部 Hero、免责声明、宠物选择区、快捷问题、新咨询入口、历史咨询和底部 TabBar 需要保持浅蓝白、圆角、柔和阴影风格。AI 首页优先使用 `ai_consult_page_icon_pack/` 资源包，运行时使用的图标复制到 `frontend/src/static/icons/ai/`，不直接依赖项目根目录资源包。快捷问题使用“健康咨询 / 日常养护 / 档案记录”分类 tab，并只展示当前分类 chips；历史咨询区提前展示，并为底部 TabBar 与 safe area 预留空间，避免最后一条历史记录被遮挡。当前阶段仍不做 SSE/WebSocket 流式输出。
+
 ### 风险等级
 
 ```text

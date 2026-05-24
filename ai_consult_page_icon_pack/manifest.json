@@ -1,0 +1,146 @@
+[
+  {
+    "name": "ai_robot",
+    "svg": "svg/ai_robot.svg",
+    "png": "png/ai_robot.png",
+    "usage": "AI 咨询入口与通用机器人图标"
+  },
+  {
+    "name": "robot_header",
+    "svg": "svg/robot_header.svg",
+    "png": "png/robot_header.png",
+    "usage": "顶部 Hero 区机器人插画图标"
+  },
+  {
+    "name": "shield_notice",
+    "svg": "svg/shield_notice.svg",
+    "png": "png/shield_notice.png",
+    "usage": "免责声明提示条盾牌图标"
+  },
+  {
+    "name": "pet_selected_check",
+    "svg": "svg/pet_selected_check.svg",
+    "png": "png/pet_selected_check.png",
+    "usage": "当前宠物选中状态勾选图标"
+  },
+  {
+    "name": "add_pet_plus",
+    "svg": "svg/add_pet_plus.svg",
+    "png": "png/add_pet_plus.png",
+    "usage": "添加宠物入口图标"
+  },
+  {
+    "name": "quick_health",
+    "svg": "svg/quick_health.svg",
+    "png": "png/quick_health.png",
+    "usage": "快捷问题分类：健康咨询"
+  },
+  {
+    "name": "quick_daily_care",
+    "svg": "svg/quick_daily_care.svg",
+    "png": "png/quick_daily_care.png",
+    "usage": "快捷问题分类：日常养护"
+  },
+  {
+    "name": "quick_archive",
+    "svg": "svg/quick_archive.svg",
+    "png": "png/quick_archive.png",
+    "usage": "快捷问题分类：档案记录"
+  },
+  {
+    "name": "input_bot",
+    "svg": "svg/input_bot.svg",
+    "png": "png/input_bot.png",
+    "usage": "新咨询输入入口左侧机器人图标"
+  },
+  {
+    "name": "history_vaccine",
+    "svg": "svg/history_vaccine.svg",
+    "png": "png/history_vaccine.png",
+    "usage": "历史咨询：疫苗记录图标"
+  },
+  {
+    "name": "history_deworm",
+    "svg": "svg/history_deworm.svg",
+    "png": "png/history_deworm.png",
+    "usage": "历史咨询：驱虫记录图标"
+  },
+  {
+    "name": "history_question",
+    "svg": "svg/history_question.svg",
+    "png": "png/history_question.png",
+    "usage": "历史咨询：普通问题图标"
+  },
+  {
+    "name": "history_skin",
+    "svg": "svg/history_skin.svg",
+    "png": "png/history_skin.png",
+    "usage": "历史咨询：皮肤/瘙痒问题图标"
+  },
+  {
+    "name": "tag_health",
+    "svg": "svg/tag_health.svg",
+    "png": "png/tag_health.png",
+    "usage": "类型标签：健康咨询"
+  },
+  {
+    "name": "tag_draft",
+    "svg": "svg/tag_draft.svg",
+    "png": "png/tag_draft.png",
+    "usage": "类型标签：记录草稿"
+  },
+  {
+    "name": "chevron_right",
+    "svg": "svg/chevron_right.svg",
+    "png": "png/chevron_right.png",
+    "usage": "右箭头 / 进入详情"
+  },
+  {
+    "name": "tab_home",
+    "svg": "svg/tab_home.svg",
+    "png": "png/tab_home.png",
+    "usage": "底部导航：首页"
+  },
+  {
+    "name": "tab_archive",
+    "svg": "svg/tab_archive.svg",
+    "png": "png/tab_archive.png",
+    "usage": "底部导航：档案"
+  },
+  {
+    "name": "tab_ai_active",
+    "svg": "svg/tab_ai_active.svg",
+    "png": "png/tab_ai_active.png",
+    "usage": "底部导航：AI咨询 active"
+  },
+  {
+    "name": "tab_service",
+    "svg": "svg/tab_service.svg",
+    "png": "png/tab_service.png",
+    "usage": "底部导航：服务"
+  },
+  {
+    "name": "tab_mine",
+    "svg": "svg/tab_mine.svg",
+    "png": "png/tab_mine.png",
+    "usage": "底部导航：我的"
+  },
+  {
+    "name": "paw_accent",
+    "svg": "svg/paw_accent.svg",
+    "png": "png/paw_accent.png",
+    "usage": "装饰爪印"
+  },
+  {
+    "name": "pet_avatar_placeholder",
+    "svg": "svg/pet_avatar_placeholder.svg",
+    "png": "png/pet_avatar_placeholder.png",
+    "usage": "宠物头像占位图"
+  },
+  {
+    "name": "view_all",
+    "svg": "svg/view_all.svg",
+    "png": "png/view_all.png",
+    "usage": "查看全部 / 更多入口"
+  }
+]

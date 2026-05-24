@@ -82,32 +82,32 @@
       {
         "pagePath": "pages/index/index",
         "text": "首页",
-        "iconPath": "static/icons/png/home.png",
-        "selectedIconPath": "static/icons/png/home.png"
+        "iconPath": "static/icons/ai/tab_home.png",
+        "selectedIconPath": "static/icons/ai/tab_home.png"
       },
       {
         "pagePath": "pages/pets/index",
         "text": "档案",
-        "iconPath": "static/icons/png/file_paw.png",
-        "selectedIconPath": "static/icons/png/file_paw.png"
+        "iconPath": "static/icons/ai/tab_archive.png",
+        "selectedIconPath": "static/icons/ai/tab_archive.png"
       },
       {
         "pagePath": "pages/ai/index",
         "text": "AI咨询",
-        "iconPath": "static/icons/png/ai_robot.png",
-        "selectedIconPath": "static/icons/png/ai_robot.png"
+        "iconPath": "static/icons/ai/tab_ai_active.png",
+        "selectedIconPath": "static/icons/ai/tab_ai_active.png"
       },
       {
         "pagePath": "pages/services/index",
         "text": "服务",
-        "iconPath": "static/icons/png/service_heart.png",
-        "selectedIconPath": "static/icons/png/service_heart.png"
+        "iconPath": "static/icons/ai/tab_service.png",
+        "selectedIconPath": "static/icons/ai/tab_service.png"
       },
       {
         "pagePath": "pages/user/index",
         "text": "我的",
-        "iconPath": "static/icons/png/profile_smile.png",
-        "selectedIconPath": "static/icons/png/profile_smile.png"
+        "iconPath": "static/icons/ai/tab_mine.png",
+        "selectedIconPath": "static/icons/ai/tab_mine.png"
       }
     ]
   }

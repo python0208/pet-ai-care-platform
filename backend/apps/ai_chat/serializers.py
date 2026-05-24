@@ -11,6 +11,7 @@ from apps.pets.models import Pet
 
 class AIConversationSerializer(serializers.ModelSerializer):
     pet_name = serializers.CharField(source="pet.name", read_only=True)
+    pending_action_count = serializers.IntegerField(read_only=True, default=0)
 
     class Meta:
         model = AIConversation
@@ -22,6 +23,7 @@ class AIConversationSerializer(serializers.ModelSerializer):
             "model_provider",
             "model_name",
             "status",
+            "pending_action_count",
             "created_at",
             "updated_at",
         )
@@ -31,6 +33,7 @@ class AIConversationSerializer(serializers.ModelSerializer):
             "model_provider",
             "model_name",
             "status",
+            "pending_action_count",
             "created_at",
             "updated_at",
         )
