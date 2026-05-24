@@ -102,7 +102,7 @@ const speciesIndex = computed(() => speciesOptions.findIndex((item) => item.valu
 const genderIndex = computed(() => genderOptions.findIndex((item) => item.value === form.gender));
 const avatarPreview = ref("");
 const avatarDisplayUrl = computed(
-  () => avatarPreview.value || resolveMediaUrl(form.avatar) || "/static/images/default-pet-avatar.svg",
+  () => avatarPreview.value || resolveMediaUrl(form.avatar) || "/static/icons/png/cat_header.png",
 );
 
 onLoad((query) => {

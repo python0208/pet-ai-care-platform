@@ -30,7 +30,7 @@
       </view>
 
       <view v-else-if="pets.length === 0" class="empty-card">
-        <image :src="aiIcon('pet_avatar_placeholder')" mode="aspectFit" />
+        <image :src="aiIcon('cat_header')" mode="aspectFit" />
         <text class="empty-title">还没有宠物档案</text>
         <text class="empty-text">请先为毛孩子建立档案，再进行 AI 健康咨询</text>
         <button class="primary-button" hover-class="button-tap" @tap="goCreatePet">去添加宠物</button>

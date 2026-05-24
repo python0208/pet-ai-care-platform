@@ -39,13 +39,13 @@
       </view>
 
       <view v-else-if="errorMessage" class="state-card">
-        <image src="/static/icons/archive/empty_pet.png" mode="aspectFit" />
+        <image src="/static/icons/png/cat_header.png" mode="aspectFit" />
         <text>{{ errorMessage }}</text>
         <button class="primary-button" hover-class="button-tap" @tap="loadArchive">重新加载</button>
       </view>
 
       <view v-else-if="pets.length === 0" class="empty-card">
-        <image src="/static/icons/archive/empty_pet.png" mode="aspectFit" />
+        <image src="/static/icons/png/cat_header.png" mode="aspectFit" />
         <text class="empty-title">还没有宠物档案</text>
         <text class="empty-text">为毛孩子建立第一份健康档案</text>
         <button class="primary-button" hover-class="button-tap" @tap="goCreate">新增宠物</button>

@@ -76,7 +76,7 @@
         </view>
         <view class="robot-orbit">
           <view class="heart-bubble">♥</view>
-          <image class="robot-image" src="/static/icons/png/ai_robot.png" mode="aspectFit" />
+          <image class="robot-image" src="/static/icons/png/robot2.png" mode="aspectFit" />
         </view>
       </view>
 
@@ -254,7 +254,7 @@ const genderSymbol = computed(() => {
 });
 const homeWeight = computed(() => homePet.value?.weight || "暂无");
 const homePetAvatarUrl = computed(
-  () => resolveMediaUrl(homePet.value?.avatar) || "/static/images/default-pet-avatar.svg",
+  () => resolveMediaUrl(homePet.value?.avatar) || "/static/icons/png/cat_header.png",
 );
 const petMeta = computed(() => {
   if (!homePet.value) {
