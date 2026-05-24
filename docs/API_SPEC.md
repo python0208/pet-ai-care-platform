@@ -493,9 +493,43 @@ frontend/src/static/images/default-pet-avatar.svg
 
 ## 5. AI 健康咨询 API
 
+本组接口均需要 JWT 登录态。用户只能查看自己的 AI 会话，只能选择自己的宠物发起咨询。AI 调用由后端统一完成，前端不接触 `AI_API_KEY`。
+
+当前默认接入：
+
+```text
+AI_PROVIDER=ark_openai_compatible
+AI_API_BASE=https://ark.cn-beijing.volces.com/api/v3
+AI_MODEL=doubao-seed-2-0-mini-260428
+```
+
+真实 key 只允许写入本地 `backend/.env`。
+
 ### GET /api/ai/conversations/
 
 获取 AI 会话列表。
+
+响应：
+
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": [
+    {
+      "id": 1,
+      "pet": 1,
+      "pet_name": "豆豆",
+      "title": "猫咪呕吐咨询",
+      "model_provider": "ark_openai_compatible",
+      "model_name": "doubao-seed-2-0-mini-260428",
+      "status": "active",
+      "created_at": "2026-05-24T10:00:00+08:00",
+      "updated_at": "2026-05-24T10:00:00+08:00"
+    }
+  ]
+}
+```
 
 ---
 
@@ -551,6 +585,8 @@ frontend/src/static/images/default-pet-avatar.svg
 
 发起 AI 健康咨询。
 
+后端会自动读取宠物基础档案、最近健康记录和最近体重记录，并拼接为模型上下文。`pet_id` 必须属于当前登录用户。
+
 请求：
 
 ```json
@@ -561,6 +597,8 @@ frontend/src/static/images/default-pet-avatar.svg
   "image_urls": []
 }
 ```
+
+模型输出如果不是合法 JSON，后端会保存原始文本并构造 fallback 结构，确保接口仍返回统一结构化 `result`。
 
 响应：
 

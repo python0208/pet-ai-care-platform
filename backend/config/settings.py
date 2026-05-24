@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     "apps.users",
     "apps.pets",
     "apps.files",
+    "apps.ai_chat",
 ]
 
 MIDDLEWARE = [
@@ -93,6 +94,17 @@ AUTH_USER_MODEL = "users.User"
 WECHAT_LOGIN_MOCK = env("WECHAT_LOGIN_MOCK")
 WECHAT_MINI_APPID = env("WECHAT_MINI_APPID", default="")
 WECHAT_MINI_SECRET = env("WECHAT_MINI_SECRET", default="")
+
+AI_PROVIDER = env("AI_PROVIDER", default="ark_openai_compatible")
+AI_API_BASE = env(
+    "AI_API_BASE",
+    default="https://ark.cn-beijing.volces.com/api/v3",
+)
+AI_API_KEY = env("AI_API_KEY", default="")
+AI_MODEL = env("AI_MODEL", default="doubao-seed-2-0-mini-260428")
+AI_TIMEOUT_SECONDS = env.int("AI_TIMEOUT_SECONDS", default=60)
+AI_TEMPERATURE = env.float("AI_TEMPERATURE", default=0.3)
+AI_MAX_TOKENS = env.int("AI_MAX_TOKENS", default=1200)
 
 CORS_ALLOWED_ORIGINS = env.list(
     "CORS_ALLOWED_ORIGINS",

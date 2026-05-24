@@ -369,6 +369,17 @@ QwenProvider
 MockAIProvider
 ```
 
+Phase 3 已实现：
+
+```text
+ProviderFactory
+AIProviderBase
+OpenAICompatibleProvider
+MockAIProvider
+```
+
+当前默认 Provider 为 `ark_openai_compatible`，通过 OpenAI SDK 兼容方式调用火山方舟 Doubao。默认模型为 `doubao-seed-2-0-mini-260428`，默认 base URL 为 `https://ark.cn-beijing.volces.com/api/v3`。后续可通过环境变量替换为其他 OpenAI-compatible 服务，或扩展 DeepSeek、通义千问、OpenRouter 等 Provider。
+
 ### 7.2 环境变量
 
 ```env
@@ -376,7 +387,12 @@ AI_PROVIDER=openai_compatible
 AI_API_BASE=https://api.example.com/v1
 AI_API_KEY=your-key
 AI_MODEL=your-model
+AI_TIMEOUT_SECONDS=60
+AI_TEMPERATURE=0.3
+AI_MAX_TOKENS=1200
 ```
+
+真实 `AI_API_KEY` 只能写入 `backend/.env`，不得进入代码、文档、测试文件或前端。`DEBUG=True` 且 key 为空时会回退到 `MockAIProvider`；生产环境 key 缺失时应返回配置错误。
 
 ### 7.3 AI 调用流程
 
@@ -399,6 +415,8 @@ AI_MODEL=your-model
        |
 返回前端展示
 ```
+
+AI 咨询结果必须包含固定免责声明，仅供养宠护理参考，不能替代专业兽医诊断；所有会话、消息、结构化结果都按 `request.user` 隔离。
 
 ### 7.4 AI 输出结构
 
@@ -548,9 +566,12 @@ WECHAT_MINI_SECRET=
 
 # AI
 AI_PROVIDER=openai_compatible
-AI_API_BASE=
-AI_API_KEY=
-AI_MODEL=
+AI_API_BASE=https://ark.cn-beijing.volces.com/api/v3
+AI_API_KEY=your-ark-api-key
+AI_MODEL=doubao-seed-2-0-mini-260428
+AI_TIMEOUT_SECONDS=60
+AI_TEMPERATURE=0.3
+AI_MAX_TOKENS=1200
 
 # Payment
 PAYMENT_MOCK=True

@@ -107,6 +107,9 @@ frontend/src/static/images/default-pet-avatar.svg
 - AI 返回风险等级、可能原因、护理建议、是否建议就医
 - 保存历史会话
 - 必须展示免责声明
+- 后端已通过 OpenAI-compatible Provider 接入火山方舟 Doubao，默认模型为 `doubao-seed-2-0-mini-260428`
+- AI 配置只从后端环境变量读取，前端不会接触 `AI_API_KEY`
+- AI 咨询会读取当前用户自己的宠物档案、健康记录摘要和体重记录摘要作为上下文
 
 ### 3.4 生活服务
 
@@ -270,6 +273,9 @@ AI_PROVIDER
 AI_API_BASE
 AI_API_KEY
 AI_MODEL
+AI_TIMEOUT_SECONDS
+AI_TEMPERATURE
+AI_MAX_TOKENS
 PAYMENT_MOCK
 WECHAT_PAY_MCH_ID
 ALIPAY_APP_ID
@@ -313,6 +319,20 @@ AI 养宠助手
 ```text
 本结果由 AI 根据你提供的信息生成，仅供养宠护理参考，不能替代专业兽医诊断。如宠物出现持续呕吐、呼吸困难、抽搐、大量出血、精神极差、误食毒物等情况，请立即联系线下宠物医院。
 ```
+
+默认本地 AI 配置示例：
+
+```text
+AI_PROVIDER=ark_openai_compatible
+AI_API_BASE=https://ark.cn-beijing.volces.com/api/v3
+AI_API_KEY=your-ark-api-key
+AI_MODEL=doubao-seed-2-0-mini-260428
+AI_TIMEOUT_SECONDS=60
+AI_TEMPERATURE=0.3
+AI_MAX_TOKENS=1200
+```
+
+真实 `AI_API_KEY` 只能由开发者手动写入 `backend/.env`，不要写入 README、docs、测试文件、前端代码或任何 Git 跟踪文件。`DEBUG=True` 且未配置 key 时，后端会回退到 `MockAIProvider`，便于本地开发。
 
 ---
 

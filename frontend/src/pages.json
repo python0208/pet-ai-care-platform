@@ -55,6 +55,12 @@
       }
     },
     {
+      "path": "pages/ai/chat",
+      "style": {
+        "navigationStyle": "custom"
+      }
+    },
+    {
       "path": "pages/services/index",
       "style": {
         "navigationBarTitleText": "服务"

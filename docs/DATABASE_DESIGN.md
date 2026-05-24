@@ -259,6 +259,8 @@ updated_at  datetime
 - 同一 scene 只能有一个 active 模板。
 - 提示词可以由后台维护。
 - 第一阶段也可先通过 seed 数据初始化。
+- Phase 3 默认 seed `pet_health_consult` 提示词，内容来自后端 `apps/ai_chat/prompts.py`。
+- 当前 MySQL 环境不依赖条件唯一约束；应用层读取当前 scene 下第一个 active 模板。
 
 ---
 

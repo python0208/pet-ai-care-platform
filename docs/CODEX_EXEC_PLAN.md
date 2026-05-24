@@ -323,6 +323,21 @@
 15. 保存用户消息和 AI 回复。
 16. 模型失败时返回友好错误。
 
+### 当前实现补充
+
+Phase 3 默认通过 OpenAI-compatible Provider 接入火山方舟 Doubao：
+
+```text
+AI_PROVIDER=ark_openai_compatible
+AI_API_BASE=https://ark.cn-beijing.volces.com/api/v3
+AI_MODEL=doubao-seed-2-0-mini-260428
+AI_TIMEOUT_SECONDS=60
+AI_TEMPERATURE=0.3
+AI_MAX_TOKENS=1200
+```
+
+`AI_API_KEY` 只能手动写入本地 `backend/.env`，不得写入代码、文档、测试文件或前端。`DEBUG=True` 且 key 为空时允许回退到 `MockAIProvider`；生产环境 key 缺失时应返回配置错误。AI 咨询必须读取当前用户自己的宠物档案上下文，用户不能使用其他用户的宠物发起咨询。
+
 ### 前端任务
 
 1. AI 会话列表。
