@@ -497,6 +497,8 @@ frontend/src/static/images/default-pet-avatar.svg
 
 AI 角色为“AI 养宠助手”，支持日常养护问答、健康咨询和档案记录辅助。模型不能直接写数据库；如果识别到记录意图，后端只保存 `AIActionDraft`，用户确认后才执行写入。
 
+当前 AI 聊天接口使用普通非流式 HTTP 请求返回完整结果；本阶段不实现 SSE 或 WebSocket 流式输出。前端负责展示用户消息、AI 回复、图片消息、健康结果卡片和动作草稿卡片，并需要为底部输入栏和安全区预留滚动空间。
+
 当前默认接入：
 
 ```text
@@ -643,6 +645,17 @@ AI_MODEL=doubao-seed-2-0-mini-260428
 ### GET /api/ai/conversations/{id}/action-drafts/
 
 获取某会话下的动作草稿。
+
+动作草稿状态：
+
+```text
+pending    待确认，前端显示确认保存和取消按钮
+executed   用户确认后后端已写入档案，前端显示已保存
+cancelled  用户取消，前端显示已取消
+failed     后端执行失败，前端显示保存失败和错误原因
+```
+
+前端必须以后端返回的 `status` 为准；`pending` 不得显示为已保存。
 
 ### POST /api/ai/action-drafts/{id}/confirm/
 

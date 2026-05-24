@@ -9,6 +9,57 @@
       <view class="top-spacer"></view>
     </view>
 
+    <view class="chat-tools">
+      <view class="disclaimer-strip">
+        <text>健康建议仅供护理参考，不能替代专业兽医诊断。</text>
+      </view>
+
+      <view v-if="pets.length > 0" class="pet-strip">
+        <scroll-view scroll-x :show-scrollbar="false">
+          <view class="pet-track">
+            <view
+              v-for="pet in pets"
+              :key="pet.id"
+              class="pet-chip"
+              :class="{ active: pet.id === selectedPetId }"
+              @tap="selectPet(pet.id)"
+            >
+              <image :src="petAvatarUrl(pet.avatar)" mode="aspectFill" />
+              <text>{{ pet.name }}</text>
+            </view>
+          </view>
+        </scroll-view>
+      </view>
+
+      <view class="quick-panel">
+        <scroll-view class="quick-tabs-scroll" scroll-x :show-scrollbar="false">
+          <view class="quick-tabs">
+            <view
+              v-for="(group, index) in quickGroups"
+              :key="group.title"
+              class="quick-tab"
+              :class="{ active: activeQuickIndex === index }"
+              @tap="activeQuickIndex = index"
+            >
+              <text>{{ group.title }}</text>
+            </view>
+          </view>
+        </scroll-view>
+        <scroll-view class="quick-chip-scroll" scroll-x :show-scrollbar="false">
+          <view class="quick-track">
+            <view
+              v-for="item in activeQuickItems"
+              :key="item"
+              class="quick-chip"
+              @tap="fillQuestion(item)"
+            >
+              <text>{{ item }}</text>
+            </view>
+          </view>
+        </scroll-view>
+      </view>
+    </view>
+
     <scroll-view
       class="message-scroll"
       scroll-y
@@ -16,58 +67,29 @@
       :show-scrollbar="false"
     >
       <view class="scroll-inner">
-        <view class="disclaimer-strip">
-          <text>健康相关建议仅供养宠护理参考，不能替代专业兽医诊断。</text>
+        <view v-if="pets.length === 0" class="empty-card">
+          <image src="/static/icons/archive/empty_pet.png" mode="aspectFit" />
+          <text class="empty-title">还没有宠物档案</text>
+          <text class="empty-text">请先为毛孩子建立档案，再进行 AI 咨询</text>
+          <button class="save-button empty-button" hover-class="button-tap" @tap="goCreatePet">去添加宠物</button>
         </view>
 
-        <view v-if="pets.length > 0" class="pet-strip">
-          <scroll-view scroll-x :show-scrollbar="false">
-            <view class="pet-track">
-              <view
-                v-for="pet in pets"
-                :key="pet.id"
-                class="pet-chip"
-                :class="{ active: pet.id === selectedPetId }"
-                @tap="selectPet(pet.id)"
-              >
-                <image :src="petAvatarUrl(pet.avatar)" mode="aspectFill" />
-                <text>{{ pet.name }}</text>
-              </view>
-            </view>
-          </scroll-view>
-        </view>
-
-        <view class="quick-panel">
-          <view v-for="group in quickGroups" :key="group.title" class="quick-group">
-            <text class="quick-group-title">{{ group.title }}</text>
-            <scroll-view scroll-x :show-scrollbar="false">
-              <view class="quick-track">
-                <view
-                  v-for="item in group.items"
-                  :key="item"
-                  class="quick-chip"
-                  @tap="fillQuestion(item)"
-                >
-                  <text>{{ item }}</text>
-                </view>
-              </view>
-            </scroll-view>
-          </view>
-        </view>
-
-        <view class="messages">
+        <view v-else class="messages">
           <view v-for="item in localMessages" :key="item.id" class="message-item" :class="item.role">
             <view class="bubble">
               <text v-if="item.content">{{ item.content }}</text>
               <view v-if="item.imageUrls.length > 0" class="bubble-images">
-                <image
-                  v-for="url in item.imageUrls"
-                  :key="url"
-                  class="message-image"
-                  :src="mediaUrl(url)"
-                  mode="aspectFill"
-                  @tap="previewImage(url, item.imageUrls)"
-                />
+                <view v-for="url in item.imageUrls" :key="url" class="message-image-wrap">
+                  <image
+                    v-if="!isImageFailed(url)"
+                    class="message-image"
+                    :src="mediaUrl(url)"
+                    mode="aspectFill"
+                    @error="markImageError(url)"
+                    @tap="previewImage(url, item.imageUrls)"
+                  />
+                  <text v-else class="image-fallback">图片加载失败</text>
+                </view>
               </view>
             </view>
 
@@ -105,28 +127,31 @@
               v-for="draft in item.actionDrafts"
               :key="draft.id"
               class="draft-card"
-              :class="draft.status"
+              :class="effectiveDraftStatus(draft)"
             >
               <view class="draft-head">
                 <text class="draft-title">{{ draft.display_title }}</text>
-                <text class="draft-status">{{ draftStatusLabel(draft.status) }}</text>
+                <text class="draft-status">{{ draftStatusLabel(effectiveDraftStatus(draft)) }}</text>
               </view>
               <text class="draft-confirm">{{ draft.confirm_text }}</text>
               <view class="draft-summary">
                 <text v-for="line in draftSummary(draft)" :key="line">{{ line }}</text>
               </view>
-              <view class="draft-actions">
+              <text v-if="effectiveDraftStatus(draft) === 'executed'" class="draft-note">已添加到档案，可到档案页查看。</text>
+              <text v-else-if="effectiveDraftStatus(draft) === 'cancelled'" class="draft-note muted">这条草稿已取消。</text>
+              <text v-else-if="effectiveDraftStatus(draft) === 'failed'" class="draft-note failed">{{ draft.error_message || "保存失败，请稍后重试。" }}</text>
+              <view v-if="effectiveDraftStatus(draft) === 'pending'" class="draft-actions">
                 <button
                   class="save-button"
-                  :disabled="draft.status !== 'pending'"
+                  :disabled="draftBusyId === draft.id"
                   hover-class="button-tap"
                   @tap="confirmDraft(draft)"
                 >
-                  确认保存
+                  {{ draftBusyId === draft.id ? "保存中" : "确认保存" }}
                 </button>
                 <button
                   class="cancel-button"
-                  :disabled="draft.status !== 'pending'"
+                  :disabled="draftBusyId === draft.id"
                   hover-class="button-tap"
                   @tap="cancelDraft(draft)"
                 >
@@ -169,9 +194,11 @@
           maxlength="1000"
           confirm-type="send"
           :adjust-position="true"
-          placeholder="问养护问题，或说“记录今天体重 4.8kg”"
+          placeholder="问养宠问题，或记录体重 4.8kg"
         />
-        <button class="send-button" :disabled="sending || uploading" hover-class="button-tap" @tap="sendMessage">发送</button>
+        <button class="send-button" :disabled="sendDisabled" hover-class="button-tap" @tap="sendMessage">
+          {{ sending ? "发送中" : "发送" }}
+        </button>
       </view>
     </view>
   </view>
@@ -191,7 +218,7 @@ import {
 import { uploadFile } from "@/api/files";
 import { getPets } from "@/api/pets";
 import { resolveMediaUrl } from "@/api/request";
-import type { AIActionDraft, AIConsultationResult } from "@/types/ai";
+import type { AIActionDraft, AIActionDraftStatus, AIConsultationResult } from "@/types/ai";
 import type { Pet } from "@/types/pet";
 import { requireAuth } from "@/utils/auth";
 
@@ -219,6 +246,9 @@ const errorMessage = ref("");
 const lastMessage = ref("");
 const lastImages = ref<string[]>([]);
 const scrollAnchor = ref("");
+const activeQuickIndex = ref(0);
+const draftBusyId = ref<number | null>(null);
+const failedImageUrls = ref<string[]>([]);
 
 const quickGroups = [
   {
@@ -236,6 +266,10 @@ const quickGroups = [
 ];
 
 const selectedPet = computed(() => pets.value.find((pet) => pet.id === selectedPetId.value) || null);
+const activeQuickItems = computed(() => quickGroups[activeQuickIndex.value]?.items || []);
+const sendDisabled = computed(
+  () => sending.value || uploading.value || !selectedPetId.value || (!draft.value.trim() && imageUrls.value.length === 0),
+);
 
 onLoad(async (query) => {
   if (!requireAuth()) {
@@ -307,6 +341,10 @@ function selectPet(id: number) {
 
 function fillQuestion(question: string) {
   draft.value = question;
+}
+
+function goCreatePet() {
+  uni.navigateTo({ url: "/pages/pets/edit" });
 }
 
 async function chooseImage() {
@@ -390,9 +428,10 @@ function retryLastMessage() {
 }
 
 async function confirmDraft(draft: AIActionDraft) {
-  if (draft.status !== "pending") {
+  if (effectiveDraftStatus(draft) !== "pending" || draftBusyId.value) {
     return;
   }
+  draftBusyId.value = draft.id;
   try {
     const response = await confirmActionDraft(draft.id);
     updateDraft(response.data);
@@ -402,18 +441,25 @@ async function confirmDraft(draft: AIActionDraft) {
     });
   } catch (error) {
     uni.showToast({ title: "保存失败，请稍后重试", icon: "none" });
+  } finally {
+    draftBusyId.value = null;
+    scrollToBottom();
   }
 }
 
 async function cancelDraft(draft: AIActionDraft) {
-  if (draft.status !== "pending") {
+  if (effectiveDraftStatus(draft) !== "pending" || draftBusyId.value) {
     return;
   }
+  draftBusyId.value = draft.id;
   try {
     const response = await cancelActionDraft(draft.id);
     updateDraft(response.data);
   } catch (error) {
     uni.showToast({ title: "取消失败，请稍后重试", icon: "none" });
+  } finally {
+    draftBusyId.value = null;
+    scrollToBottom();
   }
 }
 
@@ -452,6 +498,16 @@ function previewImage(url: string, urls: string[]) {
   });
 }
 
+function markImageError(url: string) {
+  if (!failedImageUrls.value.includes(url)) {
+    failedImageUrls.value.push(url);
+  }
+}
+
+function isImageFailed(url: string) {
+  return failedImageUrls.value.includes(url);
+}
+
 function riskLabel(level: string) {
   return {
     low: "低风险",
@@ -464,11 +520,21 @@ function riskLabel(level: string) {
 function draftStatusLabel(status: string) {
   return {
     pending: "待确认",
-    confirmed: "已确认",
+    confirmed: "待确认",
     executed: "已保存",
     cancelled: "已取消",
     failed: "保存失败",
   }[status] || "待确认";
+}
+
+function effectiveDraftStatus(draft: AIActionDraft): AIActionDraftStatus {
+  if (draft.status === "executed") {
+    return draft.result_ref_id ? "executed" : "pending";
+  }
+  if (draft.status === "confirmed") {
+    return "pending";
+  }
+  return draft.status || "pending";
 }
 
 function draftSummary(draft: AIActionDraft) {
@@ -501,10 +567,11 @@ function healthTypeLabel(type: string) {
 
 <style scoped>
 .chat-page {
-  min-height: 100vh;
   height: 100vh;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
   background:
     radial-gradient(circle at 0% 8%, rgba(218, 239, 255, 0.9), transparent 260rpx),
     radial-gradient(circle at 100% 26%, rgba(230, 247, 255, 0.85), transparent 260rpx),
@@ -513,11 +580,11 @@ function healthTypeLabel(type: string) {
 
 .top-bar {
   flex: 0 0 auto;
-  padding: calc(24rpx + env(safe-area-inset-top)) 26rpx 18rpx;
+  padding: calc(14rpx + env(safe-area-inset-top)) 24rpx 10rpx;
   display: flex;
   align-items: center;
+  background: rgba(239, 248, 255, 0.98);
   box-sizing: border-box;
-  background: rgba(239, 248, 255, 0.96);
 }
 
 .back-button,
@@ -527,17 +594,18 @@ function healthTypeLabel(type: string) {
 .cancel-button {
   margin: 0;
   border: 0;
+  padding: 0;
 }
 
 .back-button {
-  width: 68rpx;
-  height: 68rpx;
+  width: 58rpx;
+  height: 58rpx;
   border-radius: 999rpx;
   background: #ffffff;
   color: #1f8cff;
-  font-size: 50rpx;
-  line-height: 58rpx;
-  box-shadow: 0 10rpx 24rpx rgba(30, 119, 188, 0.12);
+  font-size: 44rpx;
+  line-height: 48rpx;
+  box-shadow: 0 8rpx 22rpx rgba(30, 119, 188, 0.12);
 }
 
 .top-title {
@@ -550,92 +618,87 @@ function healthTypeLabel(type: string) {
 
 .top-title text:first-child {
   color: #10172d;
-  font-size: 32rpx;
+  font-size: 30rpx;
   font-weight: 900;
+  line-height: 1.18;
 }
 
 .top-title text:last-child {
   max-width: 360rpx;
-  margin-top: 4rpx;
+  margin-top: 2rpx;
   color: #637086;
-  font-size: 22rpx;
+  font-size: 21rpx;
+  line-height: 1.2;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
 
 .top-spacer {
-  width: 68rpx;
+  width: 58rpx;
 }
 
-.message-scroll {
-  flex: 1;
-  min-height: 0;
-}
-
-.scroll-inner {
-  padding: 0 28rpx 250rpx;
+.chat-tools {
+  flex: 0 0 auto;
+  padding: 0 22rpx 12rpx;
+  background: rgba(239, 248, 255, 0.98);
   box-sizing: border-box;
+  box-shadow: 0 12rpx 24rpx rgba(30, 119, 188, 0.04);
 }
 
 .disclaimer-strip {
-  margin-top: 14rpx;
-  padding: 18rpx 22rpx;
-  border-radius: 24rpx;
+  padding: 10rpx 18rpx;
+  border-radius: 999rpx;
   background: rgba(235, 247, 255, 0.95);
   color: #486079;
-  font-size: 23rpx;
-  line-height: 1.5;
-}
-
-.pet-strip,
-.quick-panel {
-  margin-top: 18rpx;
-  border-radius: 28rpx;
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 8rpx 24rpx rgba(30, 119, 188, 0.06);
+  font-size: 21rpx;
+  line-height: 1.35;
 }
 
 .pet-strip {
-  padding: 18rpx 0;
+  margin-top: 10rpx;
 }
 
-.pet-track,
-.quick-track {
+.pet-track {
   display: inline-flex;
-  gap: 18rpx;
-  padding: 0 18rpx;
+  gap: 12rpx;
+  padding: 2rpx 2rpx 4rpx;
 }
 
 .pet-chip {
-  width: 126rpx;
-  padding: 12rpx 10rpx;
-  border-radius: 24rpx;
+  flex: 0 0 auto;
+  min-width: 128rpx;
+  max-width: 178rpx;
+  height: 66rpx;
+  padding: 6rpx 16rpx 6rpx 8rpx;
+  border-radius: 999rpx;
   display: flex;
-  flex-direction: column;
   align-items: center;
   gap: 8rpx;
-  background: #f6fbff;
+  background: rgba(255, 255, 255, 0.78);
+  border: 2rpx solid transparent;
   box-sizing: border-box;
 }
 
 .pet-chip.active {
   background: #e9f5ff;
-  box-shadow: inset 0 0 0 3rpx #1f8cff;
+  border-color: #1f8cff;
 }
 
 .pet-chip image {
-  width: 72rpx;
-  height: 72rpx;
+  width: 48rpx;
+  height: 48rpx;
+  flex: 0 0 48rpx;
   border-radius: 999rpx;
+  background: #eef8ff;
 }
 
 .pet-chip text {
-  width: 100%;
+  min-width: 0;
+  flex: 1;
   color: #637086;
   font-size: 22rpx;
   font-weight: 900;
-  text-align: center;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -646,40 +709,116 @@ function healthTypeLabel(type: string) {
 }
 
 .quick-panel {
-  padding: 18rpx 0 8rpx;
+  margin-top: 10rpx;
 }
 
-.quick-group {
-  margin-bottom: 16rpx;
+.quick-tabs,
+.quick-track {
+  display: inline-flex;
+  gap: 12rpx;
+  padding: 0 2rpx;
 }
 
-.quick-group-title {
-  display: block;
-  padding: 0 20rpx 10rpx;
-  color: #10172d;
-  font-size: 24rpx;
+.quick-tab {
+  flex: 0 0 auto;
+  padding: 9rpx 18rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.76);
+  color: #6b778d;
+  font-size: 22rpx;
   font-weight: 900;
+  white-space: nowrap;
+}
+
+.quick-tab.active {
+  background: #1f8cff;
+  color: #ffffff;
+}
+
+.quick-chip-scroll {
+  margin-top: 10rpx;
 }
 
 .quick-chip {
   flex: 0 0 auto;
-  padding: 14rpx 20rpx;
+  max-width: 330rpx;
+  padding: 12rpx 20rpx;
   border-radius: 999rpx;
   background: #f0f8ff;
   color: #1f5fbf;
   font-size: 23rpx;
   font-weight: 900;
   white-space: nowrap;
+  box-sizing: border-box;
+}
+
+.quick-chip text {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.message-scroll {
+  flex: 1;
+  min-height: 0;
+}
+
+.scroll-inner {
+  padding: 8rpx 24rpx 360rpx;
+  box-sizing: border-box;
+}
+
+.empty-card {
+  margin-top: 34rpx;
+  padding: 54rpx 32rpx;
+  border-radius: 34rpx;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 18rpx 46rpx rgba(30, 119, 188, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.empty-card image {
+  width: 160rpx;
+  height: 160rpx;
+}
+
+.empty-title,
+.empty-text {
+  display: block;
+}
+
+.empty-title {
+  margin-top: 18rpx;
+  color: #10172d;
+  font-size: 32rpx;
+  font-weight: 900;
+}
+
+.empty-text {
+  margin-top: 10rpx;
+  color: #7d8799;
+  font-size: 25rpx;
+  line-height: 1.5;
+}
+
+.empty-button {
+  width: 220rpx;
+  margin-top: 24rpx;
+  flex: none;
 }
 
 .messages {
-  padding-top: 20rpx;
+  padding-top: 8rpx;
 }
 
 .message-item {
   display: flex;
   flex-direction: column;
-  margin-top: 22rpx;
+  margin-top: 18rpx;
 }
 
 .message-item.user {
@@ -691,11 +830,11 @@ function healthTypeLabel(type: string) {
 }
 
 .bubble {
-  max-width: 82%;
-  padding: 22rpx 26rpx;
-  border-radius: 28rpx;
-  font-size: 28rpx;
-  line-height: 1.55;
+  max-width: 84%;
+  padding: 18rpx 22rpx;
+  border-radius: 26rpx;
+  font-size: 27rpx;
+  line-height: 1.52;
   box-sizing: border-box;
   word-break: break-word;
 }
@@ -715,16 +854,30 @@ function healthTypeLabel(type: string) {
 
 .bubble-images {
   display: flex;
-  gap: 12rpx;
-  margin-top: 14rpx;
+  gap: 10rpx;
+  margin-top: 12rpx;
   flex-wrap: wrap;
 }
 
-.message-image {
-  width: 190rpx;
-  height: 190rpx;
+.message-image-wrap,
+.message-image,
+.image-fallback {
+  width: 188rpx;
+  height: 188rpx;
   border-radius: 20rpx;
+}
+
+.message-image {
   background: #eaf4ff;
+}
+
+.image-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #edf4fb;
+  color: #7d8799;
+  font-size: 22rpx;
 }
 
 .loading-bubble {
@@ -735,11 +888,11 @@ function healthTypeLabel(type: string) {
 .draft-card,
 .error-card {
   width: 100%;
-  margin-top: 18rpx;
-  padding: 26rpx;
-  border-radius: 32rpx;
-  background: rgba(255, 255, 255, 0.96);
-  box-shadow: 0 18rpx 46rpx rgba(30, 119, 188, 0.1);
+  margin-top: 16rpx;
+  padding: 24rpx;
+  border-radius: 30rpx;
+  background: rgba(255, 255, 255, 0.97);
+  box-shadow: 0 16rpx 42rpx rgba(30, 119, 188, 0.1);
   box-sizing: border-box;
 }
 
@@ -753,16 +906,16 @@ function healthTypeLabel(type: string) {
 .risk-row,
 .draft-head {
   justify-content: space-between;
-  gap: 16rpx;
-  margin-bottom: 18rpx;
+  gap: 14rpx;
+  margin-bottom: 16rpx;
 }
 
 .risk-pill,
 .draft-status {
-  padding: 10rpx 18rpx;
+  padding: 9rpx 16rpx;
   border-radius: 999rpx;
   color: #fff;
-  font-size: 24rpx;
+  font-size: 23rpx;
   font-weight: 900;
   white-space: nowrap;
 }
@@ -776,13 +929,13 @@ function healthTypeLabel(type: string) {
   flex: 1;
   min-width: 0;
   color: #334155;
-  font-size: 24rpx;
+  font-size: 23rpx;
   font-weight: 900;
   text-align: right;
 }
 
 .result-section {
-  margin-top: 20rpx;
+  margin-top: 18rpx;
 }
 
 .result-title,
@@ -792,6 +945,7 @@ function healthTypeLabel(type: string) {
 .draft-title,
 .draft-confirm,
 .draft-summary text,
+.draft-note,
 .error-card text {
   display: block;
 }
@@ -799,42 +953,48 @@ function healthTypeLabel(type: string) {
 .result-title,
 .draft-title {
   color: #10172d;
-  font-size: 28rpx;
+  font-size: 27rpx;
   font-weight: 900;
-  line-height: 1.3;
+  line-height: 1.32;
+}
+
+.draft-title {
+  flex: 1;
+  min-width: 0;
 }
 
 .result-text,
 .list-line,
 .draft-confirm,
-.draft-summary text {
+.draft-summary text,
+.draft-note {
   margin-top: 8rpx;
   color: #4b5870;
-  font-size: 25rpx;
+  font-size: 24rpx;
   line-height: 1.55;
   word-break: break-word;
 }
 
 .result-disclaimer {
-  margin-top: 22rpx;
-  padding: 18rpx;
-  border-radius: 22rpx;
+  margin-top: 20rpx;
+  padding: 16rpx;
+  border-radius: 20rpx;
   background: #f0f8ff;
   color: #637086;
-  font-size: 23rpx;
-  line-height: 1.55;
+  font-size: 22rpx;
+  line-height: 1.52;
 }
 
 .draft-card {
-  border: 2rpx solid #e3f0ff;
+  border: 2rpx solid #dbeeff;
 }
 
 .draft-card.executed {
-  border-color: #c7f4dc;
+  border-color: #bcefd3;
 }
 
 .draft-card.cancelled {
-  opacity: 0.72;
+  opacity: 0.76;
 }
 
 .draft-status {
@@ -855,24 +1015,43 @@ function healthTypeLabel(type: string) {
 
 .draft-summary {
   margin-top: 14rpx;
-  padding: 16rpx;
+  padding: 14rpx;
   border-radius: 20rpx;
   background: #f6fbff;
 }
 
+.draft-note {
+  padding: 12rpx 16rpx;
+  margin-top: 14rpx;
+  border-radius: 18rpx;
+  background: #edfdf4;
+  color: #18a058;
+  font-weight: 900;
+}
+
+.draft-note.muted {
+  background: #f3f6fa;
+  color: #7d8799;
+}
+
+.draft-note.failed {
+  background: #fff1f2;
+  color: #ef4444;
+}
+
 .draft-actions {
-  gap: 16rpx;
+  gap: 14rpx;
   margin-top: 18rpx;
 }
 
 .save-button,
 .cancel-button {
   flex: 1;
-  height: 72rpx;
+  height: 70rpx;
   border-radius: 999rpx;
   font-size: 25rpx;
   font-weight: 900;
-  line-height: 72rpx;
+  line-height: 70rpx;
 }
 
 .save-button {
@@ -911,9 +1090,10 @@ function healthTypeLabel(type: string) {
   left: 0;
   right: 0;
   bottom: 0;
-  padding: 16rpx 24rpx calc(24rpx + env(safe-area-inset-bottom));
-  background: rgba(255, 255, 255, 0.98);
+  padding: 14rpx 20rpx calc(18rpx + env(safe-area-inset-bottom));
+  background: rgba(255, 255, 255, 0.94);
   box-shadow: 0 -14rpx 36rpx rgba(30, 119, 188, 0.08);
+  backdrop-filter: blur(18rpx);
   box-sizing: border-box;
 }
 
@@ -921,26 +1101,28 @@ function healthTypeLabel(type: string) {
   display: flex;
   gap: 12rpx;
   margin-bottom: 12rpx;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  overflow: hidden;
 }
 
 .selected-image-wrap {
   position: relative;
-  width: 108rpx;
-  height: 108rpx;
+  width: 100rpx;
+  height: 100rpx;
+  flex: 0 0 100rpx;
 }
 
 .selected-image {
-  width: 108rpx;
-  height: 108rpx;
+  width: 100rpx;
+  height: 100rpx;
   border-radius: 18rpx;
   background: #eaf4ff;
 }
 
 .remove-image {
   position: absolute;
-  top: -10rpx;
-  right: -10rpx;
+  top: -8rpx;
+  right: -8rpx;
   width: 34rpx;
   height: 34rpx;
   border-radius: 999rpx;
@@ -954,48 +1136,52 @@ function healthTypeLabel(type: string) {
 .input-row {
   display: flex;
   align-items: flex-end;
-  gap: 14rpx;
+  gap: 12rpx;
 }
 
 .image-button {
-  width: 72rpx;
-  height: 72rpx;
+  width: 68rpx;
+  height: 68rpx;
+  flex: 0 0 68rpx;
   border-radius: 999rpx;
   background: #eff8ff;
   color: #1f8cff;
-  font-size: 40rpx;
-  line-height: 66rpx;
+  font-size: 38rpx;
+  line-height: 62rpx;
   font-weight: 900;
 }
 
 .message-input {
   flex: 1;
-  min-height: 72rpx;
-  max-height: 180rpx;
-  padding: 18rpx 22rpx;
+  min-width: 0;
+  min-height: 68rpx;
+  max-height: 156rpx;
+  padding: 17rpx 20rpx;
   border-radius: 28rpx;
   background: #f6fbff;
   color: #17213a;
-  font-size: 26rpx;
+  font-size: 25rpx;
   line-height: 1.42;
   box-sizing: border-box;
 }
 
 .send-button {
-  width: 112rpx;
-  height: 72rpx;
+  width: 104rpx;
+  height: 68rpx;
+  flex: 0 0 104rpx;
   border-radius: 999rpx;
   background: linear-gradient(135deg, #1f8cff, #1268ff);
   color: #fff;
-  font-size: 25rpx;
+  font-size: 24rpx;
   font-weight: 900;
-  line-height: 72rpx;
+  line-height: 68rpx;
+  white-space: nowrap;
   box-shadow: 0 12rpx 26rpx rgba(31, 140, 255, 0.22);
 }
 
 .image-button[disabled],
 .send-button[disabled] {
-  opacity: 0.5;
+  opacity: 0.48;
 }
 
 .button-tap {
