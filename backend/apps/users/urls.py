@@ -4,6 +4,7 @@ from apps.users.views import (
     LoginView,
     LogoutView,
     MeView,
+    MeSummaryView,
     RegisterView,
     TokenRefreshView,
     WeChatLoginView,
@@ -16,4 +17,5 @@ urlpatterns = [
     path("auth/wx-login/", WeChatLoginView.as_view(), name="auth-wx-login"),
     path("auth/logout/", LogoutView.as_view(), name="auth-logout"),
     path("users/me/", MeView.as_view(), name="users-me"),
+    path("users/me/summary/", MeSummaryView.as_view(), name="users-me-summary"),
 ]

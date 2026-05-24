@@ -7,7 +7,15 @@ from rest_framework_simplejwt.tokens import RefreshToken
 User = get_user_model()
 
 
+def is_internal_wechat_email(email: str) -> bool:
+    return bool(email and email.endswith("@wechat.local"))
+
+
 class UserSerializer(serializers.ModelSerializer):
+    email = serializers.SerializerMethodField()
+    has_wechat_bound = serializers.SerializerMethodField()
+    auth_providers = serializers.SerializerMethodField()
+
     class Meta:
         model = User
         fields = (
@@ -17,7 +25,25 @@ class UserSerializer(serializers.ModelSerializer):
             "avatar",
             "gender",
             "is_email_verified",
+            "has_wechat_bound",
+            "auth_providers",
         )
+
+    def get_email(self, obj):
+        return "" if is_internal_wechat_email(obj.email) else obj.email
+
+    def get_has_wechat_bound(self, obj):
+        return bool(obj.wx_openid)
+
+    def get_auth_providers(self, obj):
+        providers = []
+        if obj.email and not is_internal_wechat_email(obj.email):
+            providers.append("email")
+        if obj.wx_openid:
+            providers.append("wechat")
+        if obj.app_openid:
+            providers.append("wechat_app")
+        return providers
 
 
 def build_token_payload(user):

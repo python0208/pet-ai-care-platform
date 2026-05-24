@@ -1,6 +1,9 @@
 from django.urls import reverse
+from django.test import override_settings
 from rest_framework.test import APITestCase
 
+from apps.ai_chat.models import AIActionDraft, AIConversation
+from apps.pets.models import Pet
 from apps.users.models import User
 
 
@@ -146,3 +149,146 @@ class EmailAuthTests(APITestCase):
         field_names = {field.name for field in User._meta.fields}
 
         self.assertNotIn("phone", field_names)
+
+
+class WechatAuthTests(APITestCase):
+    @override_settings(DEBUG=True, WECHAT_LOGIN_MOCK_ENABLED=True)
+    def test_mock_wechat_login_creates_user(self):
+        response = self.client.post(
+            reverse("auth-wx-login"),
+            {
+                "code": "mock-wx-code",
+                "platform": "miniapp",
+                "nickname": "微信用户",
+                "avatar": "",
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        data = response.json()["data"]
+        self.assertIn("access_token", data)
+        self.assertIn("refresh_token", data)
+        self.assertTrue(data["is_new_user"])
+        self.assertEqual(data["user"]["nickname"], "微信用户")
+        self.assertEqual(data["user"]["email"], "")
+        self.assertTrue(data["user"]["has_wechat_bound"])
+        self.assertNotIn("session_key", data)
+        self.assertEqual(User.objects.count(), 1)
+
+    @override_settings(DEBUG=True, WECHAT_LOGIN_MOCK_ENABLED=True)
+    def test_same_mock_openid_does_not_create_duplicate_user(self):
+        for _ in range(2):
+            response = self.client.post(
+                reverse("auth-wx-login"),
+                {"code": "same-code", "platform": "miniapp"},
+                format="json",
+            )
+            self.assertEqual(response.status_code, 200)
+
+        self.assertEqual(User.objects.count(), 1)
+        self.assertFalse(response.json()["data"]["is_new_user"])
+
+    @override_settings(DEBUG=True, WECHAT_LOGIN_MOCK_ENABLED=True)
+    def test_authenticated_user_can_bind_wechat_openid(self):
+        user = User.objects.create_user(
+            email="bind@example.com",
+            password="StrongPass123",
+            nickname="邮箱用户",
+        )
+        self.client.force_authenticate(user=user)
+        response = self.client.post(
+            reverse("auth-wx-login"),
+            {"code": "bind-code", "platform": "miniapp"},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        user.refresh_from_db()
+        self.assertEqual(user.wx_openid, "mock_bind-code")
+        self.assertFalse(response.json()["data"]["is_new_user"])
+
+    @override_settings(DEBUG=True, WECHAT_LOGIN_MOCK_ENABLED=True)
+    def test_one_openid_cannot_bind_multiple_users(self):
+        User.objects.create_user(
+            email="wechat@example.com",
+            password="StrongPass123",
+            wx_openid="mock_taken-code",
+        )
+        user = User.objects.create_user(
+            email="other@example.com",
+            password="StrongPass123",
+        )
+        self.client.force_authenticate(user=user)
+        response = self.client.post(
+            reverse("auth-wx-login"),
+            {"code": "taken-code", "platform": "miniapp"},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 409)
+        self.assertEqual(response.json()["message"], "该微信已绑定其他账号")
+
+    @override_settings(
+        DEBUG=True,
+        WECHAT_LOGIN_MOCK_ENABLED=False,
+        WECHAT_MINI_APPID="",
+        WECHAT_MINI_SECRET="",
+    )
+    def test_missing_wechat_config_without_mock_returns_friendly_error(self):
+        response = self.client.post(
+            reverse("auth-wx-login"),
+            {"code": "no-config", "platform": "miniapp"},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()["message"], "微信小程序登录未配置")
+
+    @override_settings(DEBUG=True, WECHAT_LOGIN_MOCK_ENABLED=True)
+    def test_app_platform_returns_reserved_message(self):
+        response = self.client.post(
+            reverse("auth-wx-login"),
+            {"code": "app-code", "platform": "app"},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()["message"], "App 微信登录暂未配置")
+
+    def test_users_me_summary_counts_only_current_user(self):
+        user = User.objects.create_user(
+            email="summary@example.com",
+            password="StrongPass123",
+            wx_openid="mock_summary",
+        )
+        other = User.objects.create_user(
+            email="other-summary@example.com",
+            password="StrongPass123",
+        )
+        pet = Pet.objects.create(owner=user, name="豆豆")
+        other_pet = Pet.objects.create(owner=other, name="别人家的猫")
+        conversation = AIConversation.objects.create(
+            user=user,
+            pet=pet,
+            title="咨询",
+        )
+        AIConversation.objects.create(user=other, pet=other_pet, title="其他咨询")
+        AIActionDraft.objects.create(
+            user=user,
+            pet=pet,
+            conversation=conversation,
+            action_type=AIActionDraft.ActionType.CREATE_WEIGHT_RECORD,
+            display_title="建议添加体重记录",
+            confirm_text="是否保存？",
+            payload={"pet_id": pet.id},
+        )
+        self.client.force_authenticate(user=user)
+        response = self.client.get(reverse("users-me-summary"))
+
+        self.assertEqual(response.status_code, 200)
+        data = response.json()["data"]
+        self.assertEqual(data["pet_count"], 1)
+        self.assertEqual(data["ai_conversation_count"], 1)
+        self.assertEqual(data["pending_action_count"], 1)
+        self.assertTrue(data["has_wechat_bound"])

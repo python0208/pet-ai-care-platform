@@ -61,10 +61,13 @@ updated_at          datetime
 说明：
 
 - 第一阶段可以使用 Django 自定义用户模型。
-- 登录以 email 和密码为主，微信小程序登录预留 wx_openid。
+- 登录以 email 和密码为主，同时支持微信小程序 openid 登录或绑定。
+- 微信登录创建的用户如果没有邮箱，可使用系统内部占位邮箱保存唯一约束；接口对前端返回空邮箱，不伪造成真实邮箱。
+- `wx_openid` 一个 openid 只能绑定一个用户；已登录用户调用 `/api/auth/wx-login/` 时可绑定微信。
 - 当前 MVP 不使用邮箱验证码，is_email_verified 默认 false 且不影响登录。
 - 手机号不属于认证模块字段，只能在收货地址、服务预约联系人等业务联系方式中出现。
 - 用户资料不要和宠物资料混在一起。
+- “我的”页面统计不单独建表，来自当前用户的 `Pet`、`AIConversation`、`AIActionDraft` 聚合查询。
 
 ---
 

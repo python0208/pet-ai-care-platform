@@ -61,13 +61,14 @@ pet-ai-care-platform/
 
 - 邮箱注册
 - 邮箱密码登录
-- 微信小程序登录预留
+- 微信小程序登录
 - JWT 登录态
 - 用户资料查看与修改
+- 我的页面资料卡、统计卡和功能入口
 - 用户协议 / 隐私政策页面
 - 账号注销入口预留
 
-当前 MVP 不使用邮箱验证码，手机号不作为登录方式；手机号只会在后续收货地址、服务预约联系人等业务联系方式中出现。
+微信小程序登录由前端通过 `uni.login` 获取 code，后端通过 `WECHAT_MINI_APPID` 和 `WECHAT_MINI_SECRET` 调用微信 code2session 换取 openid；`session_key` 不返回前端。`DEBUG=True` 且 `WECHAT_LOGIN_MOCK_ENABLED=true` 时支持开发模式 mock 微信登录。App 端微信登录仅做开放平台配置预留，H5 当前不做微信网页授权登录。当前 MVP 不使用邮箱验证码，手机号不作为登录方式；手机号只会在后续收货地址、服务预约联系人等业务联系方式中出现。
 
 ### 3.2 宠物档案
 
@@ -271,8 +272,12 @@ DB_PORT
 REDIS_URL
 JWT_ACCESS_TOKEN_LIFETIME_MINUTES
 JWT_REFRESH_TOKEN_LIFETIME_DAYS
+WECHAT_LOGIN_ENABLED
+WECHAT_LOGIN_MOCK_ENABLED
 WECHAT_MINI_APPID
 WECHAT_MINI_SECRET
+WECHAT_APP_APPID
+WECHAT_APP_SECRET
 AI_PROVIDER
 AI_API_BASE
 AI_API_KEY

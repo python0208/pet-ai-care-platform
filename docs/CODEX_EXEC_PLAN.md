@@ -462,6 +462,43 @@ AI_MAX_TOKENS=1200
 5. 375px / 390px / 414px 宽度下不明显错位。
 6. 当前阶段仍使用非流式 HTTP 请求，不做 SSE/WebSocket 流式输出。
 
+---
+
+## Phase 3.4：我的页面 UI 完善 + 微信登录预留/小程序登录实现
+
+### 目标
+
+完善“我的”页面，并把 Phase 1 的微信登录预留补齐为可用的小程序登录能力。当前不开发商城、支付、生活服务预约，也不恢复手机号登录。
+
+### 后端任务
+
+1. `POST /api/auth/wx-login/` 支持 `platform=miniapp`。
+2. 小程序端使用 `WECHAT_MINI_APPID`、`WECHAT_MINI_SECRET` 调微信 code2session 换取 openid。
+3. `DEBUG=True` 且 `WECHAT_LOGIN_MOCK_ENABLED=true` 时支持 mock 微信登录。
+4. App 微信登录仅配置预留，未配置时返回“App 微信登录暂未配置”。
+5. 已登录用户调用 wx-login 时可绑定微信 openid；同一 openid 不能绑定多个用户。
+6. 不向前端返回 `session_key`。
+7. `/api/users/me/` 返回 `has_wechat_bound` 和 `auth_providers`。
+8. 新增 `/api/users/me/summary/`，统计当前用户宠物数、AI 会话数和待确认动作草稿数。
+
+### 前端任务
+
+1. 重构 `pages/user/index`，未登录展示登录引导，已登录展示头像、昵称、邮箱、微信绑定状态和登录方式标签。
+2. 我的页面展示“我的宠物 / 咨询记录 / 待确认记录”三项统计。
+3. 功能入口分为养宠管理、服务与商城、设置；未实现功能只提示“功能开发中”。
+4. 登录页增加微信登录入口：微信小程序显示“微信一键登录”，开发模式可显示 mock 登录。
+5. 不出现手机号登录、短信验证码、邮箱验证码入口。
+6. 退出登录需要二次确认，并清理本地 token。
+
+### 验收标准
+
+1. 邮箱注册和邮箱密码登录仍可用。
+2. 微信小程序登录接口可用，mock 微信登录可用于本地开发。
+3. 没有真实微信配置时系统不崩溃。
+4. 我的页面在 375px / 390px / 414px 下布局正常，底部 TabBar 不遮挡内容。
+5. App 微信登录仅说明预留，不假装真实可用。
+6. 不提交 `.env`，不把 AppID、Secret 写入代码或文档。
+
 ### 给 Codex 的提示词
 
 ```text

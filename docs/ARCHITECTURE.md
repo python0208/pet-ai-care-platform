@@ -181,9 +181,10 @@ apps/common/
 - 用户模型
 - 邮箱注册
 - 邮箱密码登录
-- 微信小程序登录预留
+- 微信小程序登录与 App 登录配置预留
 - JWT 登录
 - 用户资料
+- 我的页面统计
 - 账号注销预留
 
 ---
@@ -319,8 +320,24 @@ Celery + Redis
 ```text
 邮箱注册
 邮箱密码登录
-微信小程序登录预留
+微信小程序登录
 ```
+
+微信小程序登录流程：
+
+```text
+uni.login 获取 code
+        |
+POST /api/auth/wx-login/
+        |
+后端 code2session 换取 openid
+        |
+按 wx_openid 登录或绑定当前账号
+        |
+返回 JWT，不返回 session_key
+```
+
+真实微信小程序配置来自 `WECHAT_MINI_APPID` 与 `WECHAT_MINI_SECRET`。如果缺少配置且 `DEBUG=True`、`WECHAT_LOGIN_MOCK_ENABLED=true`，后端允许 mock 微信登录。App 端微信登录需要微信开放平台移动应用审核，当前仅保留 `WECHAT_APP_APPID`、`WECHAT_APP_SECRET` 配置位并返回明确预留提示；H5 暂不做微信网页授权登录。
 
 当前 MVP 不使用邮箱验证码，手机号不作为认证登录方式。手机号仅在后续收货地址、服务预约联系人等业务联系方式中使用。
 
@@ -580,8 +597,12 @@ JWT_ACCESS_TOKEN_LIFETIME_MINUTES=60
 JWT_REFRESH_TOKEN_LIFETIME_DAYS=7
 
 # WeChat Mini Program
-WECHAT_MINI_APPID=
-WECHAT_MINI_SECRET=
+WECHAT_LOGIN_ENABLED=true
+WECHAT_LOGIN_MOCK_ENABLED=true
+WECHAT_MINI_APPID=your-wechat-mini-appid
+WECHAT_MINI_SECRET=your-wechat-mini-secret
+WECHAT_APP_APPID=your-wechat-open-platform-appid
+WECHAT_APP_SECRET=your-wechat-open-platform-secret
 
 # AI
 AI_PROVIDER=openai_compatible

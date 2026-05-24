@@ -1,5 +1,5 @@
 import { request } from "@/api/request";
-import type { AuthPayload, UserProfile } from "@/types/user";
+import type { AuthPayload, UserProfile, UserSummary, WechatLoginPayload } from "@/types/user";
 
 export interface RegisterPayload {
   email: string;
@@ -35,8 +35,20 @@ export function login(payload: LoginPayload) {
   });
 }
 
+export function wechatLogin(payload: WechatLoginPayload) {
+  return request<AuthPayload>("/auth/wx-login/", {
+    method: "POST",
+    data: payload,
+    loading: true,
+  });
+}
+
 export function getMe() {
   return request<UserProfile>("/users/me/");
+}
+
+export function getUserSummary() {
+  return request<UserSummary>("/users/me/summary/");
 }
 
 export function updateMe(payload: ProfileUpdatePayload) {

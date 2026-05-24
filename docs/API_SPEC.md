@@ -138,7 +138,9 @@ Content-Type: multipart/form-data
       "nickname": "宠护用户",
       "avatar": "",
       "gender": "unknown",
-      "is_email_verified": false
+      "is_email_verified": false,
+      "has_wechat_bound": false,
+      "auth_providers": ["email"]
     }
   }
 }
@@ -174,7 +176,9 @@ Content-Type: multipart/form-data
       "nickname": "宠护用户",
       "avatar": "",
       "gender": "unknown",
-      "is_email_verified": false
+      "is_email_verified": false,
+      "has_wechat_bound": false,
+      "auth_providers": ["email"]
     }
   }
 }
@@ -210,13 +214,14 @@ Content-Type: multipart/form-data
 
 ### POST /api/auth/wx-login/
 
-微信小程序登录。
+微信小程序登录。真实小程序端由前端通过 `uni.login` 获取 `code`，后端使用 `WECHAT_MINI_APPID` 和 `WECHAT_MINI_SECRET` 调微信 `code2session` 换取 `openid`；`session_key` 不返回前端。`DEBUG=True` 且 `WECHAT_LOGIN_MOCK_ENABLED=true` 时允许 mock 登录。App 端微信登录当前仅预留，未配置时返回“App 微信登录暂未配置”；H5 当前不做微信网页授权登录。
 
 请求：
 
 ```json
 {
   "code": "wx_login_code",
+  "platform": "miniapp",
   "nickname": "微信用户",
   "avatar": "https://example.com/avatar.png"
 }
@@ -231,15 +236,27 @@ Content-Type: multipart/form-data
   "data": {
     "access_token": "xxx",
     "refresh_token": "xxx",
-    "user": {}
+    "user": {
+      "id": 1,
+      "email": "",
+      "nickname": "微信用户",
+      "avatar": "",
+      "gender": "unknown",
+      "is_email_verified": false,
+      "has_wechat_bound": true,
+      "auth_providers": ["wechat"]
+    },
+    "is_new_user": true
   }
 }
 ```
 
 说明：
 
-- 开发环境允许 mock code。
-- 真实环境通过 code2session 获取 openid。
+- 如果请求携带有效 `Authorization`，接口会尝试把微信 openid 绑定到当前账号。
+- 同一个 openid 不能绑定多个用户。
+- 前端不能接触 `WECHAT_MINI_SECRET`，也不能获取或保存 `session_key`。
+- 不使用手机号登录、短信验证码或邮箱验证码。
 
 ---
 
@@ -275,7 +292,9 @@ Content-Type: multipart/form-data
     "nickname": "用户",
     "avatar": "",
     "gender": "unknown",
-    "is_email_verified": false
+    "is_email_verified": false,
+    "has_wechat_bound": true,
+    "auth_providers": ["email", "wechat"]
   }
 }
 ```
@@ -293,6 +312,27 @@ Content-Type: multipart/form-data
   "nickname": "新昵称",
   "avatar": "https://example.com/avatar.png",
   "gender": "unknown"
+}
+```
+
+---
+
+### GET /api/users/me/summary/
+
+获取“我的”页面统计数据，需要 JWT。只统计当前登录用户的数据。
+
+响应：
+
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": {
+    "pet_count": 2,
+    "ai_conversation_count": 6,
+    "pending_action_count": 1,
+    "has_wechat_bound": true
+  }
 }
 ```
 

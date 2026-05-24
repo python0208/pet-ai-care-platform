@@ -83,11 +83,29 @@
             {{ mode === "login" ? "登录" : "注册并进入" }}
           </button>
 
-          <view class="wechat-line">
+          <view v-if="showWechatArea" class="wechat-line">
             <view class="line"></view>
-            <text>微信小程序登录预留</text>
+            <text>其他登录方式</text>
             <view class="line"></view>
           </view>
+
+          <button
+            v-if="isMiniApp"
+            class="wechat-button"
+            hover-class="button-tap"
+            @tap="handleWechatLogin(false)"
+          >
+            微信一键登录
+          </button>
+
+          <button
+            v-else-if="isDevMode"
+            class="wechat-button mock"
+            hover-class="button-tap"
+            @tap="handleWechatLogin(true)"
+          >
+            开发模式微信登录
+          </button>
         </view>
       </view>
     </view>
@@ -95,20 +113,27 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref } from "vue";
+import { computed, reactive, ref } from "vue";
 
-import { login, register } from "@/api/auth";
+import { login, register, wechatLogin } from "@/api/auth";
 import { useAuthStore } from "@/stores/auth";
 
 const authStore = useAuthStore();
 const mode = ref<"login" | "register">("login");
 const agreed = ref(false);
+const isMiniApp = ref(false);
+const isDevMode = import.meta.env.DEV;
+const showWechatArea = computed(() => isMiniApp.value || isDevMode);
 const form = reactive({
   email: "",
   nickname: "",
   password: "",
   confirmPassword: "",
 });
+
+// #ifdef MP-WEIXIN
+isMiniApp.value = true;
+// #endif
 
 type FormKey = keyof typeof form;
 type InputEvent = Event & { detail?: { value?: string } };
@@ -170,6 +195,40 @@ async function submit() {
     uni.switchTab({ url: "/pages/user/index" });
   } catch (error) {
     const message = (error as { message?: string })?.message || "操作失败，请稍后再试";
+    showError(message);
+  }
+}
+
+function getMiniappLoginCode() {
+  return new Promise<string>((resolve, reject) => {
+    uni.login({
+      provider: "weixin",
+      success: (result: any) => {
+        if (result.code) {
+          resolve(result.code);
+          return;
+        }
+        reject(new Error("未获取到微信登录凭证"));
+      },
+      fail: reject,
+    } as any);
+  });
+}
+
+async function handleWechatLogin(useMock: boolean) {
+  try {
+    const code = useMock ? "mock-wx-code" : await getMiniappLoginCode();
+    const response = await wechatLogin({
+      code,
+      platform: "miniapp",
+      nickname: "微信用户",
+      avatar: "",
+    });
+    authStore.setAuth(response.data);
+    uni.showToast({ title: "登录成功", icon: "success" });
+    uni.switchTab({ url: "/pages/user/index" });
+  } catch (error) {
+    const message = (error as { message?: string })?.message || "微信登录失败，请稍后再试";
     showError(message);
   }
 }
@@ -310,6 +369,23 @@ async function submit() {
   margin-top: 28rpx;
   color: #9aa7b8;
   font-size: 22rpx;
+}
+
+.wechat-button {
+  height: 82rpx;
+  margin-top: 22rpx;
+  border: 1rpx solid #bfe8d4;
+  border-radius: 999rpx;
+  background: #f2fff8;
+  color: #19a35b;
+  font-size: 28rpx;
+  font-weight: 850;
+}
+
+.wechat-button.mock {
+  border-color: #cde7ff;
+  background: #f3f9ff;
+  color: #1f8cff;
 }
 
 .line {

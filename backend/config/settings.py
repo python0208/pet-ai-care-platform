@@ -11,6 +11,8 @@ env = environ.Env(
     JWT_ACCESS_TOKEN_LIFETIME_MINUTES=(int, 60),
     JWT_REFRESH_TOKEN_LIFETIME_DAYS=(int, 7),
     WECHAT_LOGIN_MOCK=(bool, True),
+    WECHAT_LOGIN_ENABLED=(bool, True),
+    WECHAT_LOGIN_MOCK_ENABLED=(bool, True),
 )
 environ.Env.read_env(BASE_DIR / ".env")
 
@@ -91,9 +93,13 @@ MEDIA_ROOT = BASE_DIR / env("MEDIA_ROOT", default="media")
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 AUTH_USER_MODEL = "users.User"
-WECHAT_LOGIN_MOCK = env("WECHAT_LOGIN_MOCK")
+WECHAT_LOGIN_ENABLED = env("WECHAT_LOGIN_ENABLED")
+WECHAT_LOGIN_MOCK_ENABLED = env("WECHAT_LOGIN_MOCK_ENABLED")
+WECHAT_LOGIN_MOCK = env("WECHAT_LOGIN_MOCK", default=WECHAT_LOGIN_MOCK_ENABLED)
 WECHAT_MINI_APPID = env("WECHAT_MINI_APPID", default="")
 WECHAT_MINI_SECRET = env("WECHAT_MINI_SECRET", default="")
+WECHAT_APP_APPID = env("WECHAT_APP_APPID", default="")
+WECHAT_APP_SECRET = env("WECHAT_APP_SECRET", default="")
 
 AI_PROVIDER = env("AI_PROVIDER", default="ark_openai_compatible")
 AI_API_BASE = env(
