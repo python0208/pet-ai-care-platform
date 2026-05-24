@@ -18,6 +18,10 @@ export interface AIMessage {
   role: "system" | "user" | "assistant";
   content: string;
   image_urls: string[];
+  raw_response?: {
+    parsed_result?: AIParsedResponse;
+    raw_text?: string;
+  } | null;
   created_at: string;
 }
 
@@ -32,10 +36,46 @@ export interface AIConsultationResult {
   disclaimer: string;
 }
 
+export type AIMode = "daily_care" | "health_consultation" | "record_intent" | "mixed" | "unknown";
+export type AIActionType = "create_weight_record" | "create_health_record";
+export type AIActionDraftStatus = "pending" | "confirmed" | "cancelled" | "executed" | "failed";
+
+export interface AIActionDraft {
+  id: number;
+  conversation: number;
+  pet: number;
+  source_message: number | null;
+  action_type: AIActionType;
+  display_title: string;
+  confirm_text: string;
+  payload: Record<string, any>;
+  status: AIActionDraftStatus;
+  result_ref_type: string;
+  result_ref_id: number | null;
+  error_message: string;
+  created_at: string;
+  updated_at: string;
+  executed_at: string | null;
+}
+
+export interface AIParsedResponse {
+  mode: AIMode;
+  reply: string;
+  health_result: AIConsultationResult | null;
+  action_drafts: Array<Omit<AIActionDraft, "id" | "conversation" | "pet" | "status" | "result_ref_type" | "result_ref_id" | "error_message" | "created_at" | "updated_at" | "executed_at">>;
+  questions_to_ask: string[];
+  disclaimer: string;
+}
+
 export interface AIConsultResponse {
   conversation_id: number;
   message_id: number;
   reply: string;
+  mode: AIMode;
+  health_result: AIConsultationResult | null;
+  action_drafts: AIActionDraft[];
+  questions_to_ask: string[];
+  disclaimer: string;
   result: AIConsultationResult;
 }
 

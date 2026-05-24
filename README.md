@@ -110,6 +110,10 @@ frontend/src/static/images/default-pet-avatar.svg
 - 后端已通过 OpenAI-compatible Provider 接入火山方舟 Doubao，默认模型为 `doubao-seed-2-0-mini-260428`
 - AI 配置只从后端环境变量读取，前端不会接触 `AI_API_KEY`
 - AI 咨询会读取当前用户自己的宠物档案、健康记录摘要和体重记录摘要作为上下文
+- AI 角色已扩展为“AI 养宠助手”，支持日常养护问答、健康咨询和档案记录辅助
+- 对话中识别到体重、疫苗、驱虫、就诊、过敏史等记录意图时，只生成待确认动作草稿，不直接写数据库
+- 用户确认动作草稿后，后端再次校验权限并写入体重记录或健康记录
+- 图片消息会保存到 AIMessage.image_urls，并在聊天窗口展示
 
 ### 3.4 生活服务
 
@@ -333,6 +337,16 @@ AI_MAX_TOKENS=1200
 ```
 
 真实 `AI_API_KEY` 只能由开发者手动写入 `backend/.env`，不要写入 README、docs、测试文件、前端代码或任何 Git 跟踪文件。`DEBUG=True` 且未配置 key 时，后端会回退到 `MockAIProvider`，便于本地开发。
+
+AI 动作草稿接口：
+
+```text
+GET  /api/ai/conversations/{conversation_id}/action-drafts/
+POST /api/ai/action-drafts/{id}/confirm/
+POST /api/ai/action-drafts/{id}/cancel/
+```
+
+动作草稿支持 `create_weight_record` 和 `create_health_record`。模型不能直接写数据库，只有用户确认后，后端才会以 `request.user` 校验宠物归属并执行写入。
 
 ---
 

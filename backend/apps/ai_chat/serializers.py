@@ -1,6 +1,11 @@
 from rest_framework import serializers
 
-from apps.ai_chat.models import AIConsultationResult, AIConversation, AIMessage
+from apps.ai_chat.models import (
+    AIActionDraft,
+    AIConsultationResult,
+    AIConversation,
+    AIMessage,
+)
 from apps.pets.models import Pet
 
 
@@ -63,9 +68,33 @@ class AIMessageSerializer(serializers.ModelSerializer):
             "role",
             "content",
             "image_urls",
+            "raw_response",
             "created_at",
         )
-        read_only_fields = ("id", "conversation", "role", "created_at")
+        read_only_fields = ("id", "conversation", "role", "raw_response", "created_at")
+
+
+class AIActionDraftSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AIActionDraft
+        fields = (
+            "id",
+            "conversation",
+            "pet",
+            "source_message",
+            "action_type",
+            "display_title",
+            "confirm_text",
+            "payload",
+            "status",
+            "result_ref_type",
+            "result_ref_id",
+            "error_message",
+            "created_at",
+            "updated_at",
+            "executed_at",
+        )
+        read_only_fields = fields
 
 
 class ConsultationResultSerializer(serializers.ModelSerializer):
@@ -86,7 +115,7 @@ class ConsultationResultSerializer(serializers.ModelSerializer):
 class ConsultSerializer(serializers.Serializer):
     pet_id = serializers.IntegerField()
     conversation_id = serializers.IntegerField(required=False, allow_null=True)
-    message = serializers.CharField(max_length=4000, allow_blank=False)
+    message = serializers.CharField(max_length=4000, allow_blank=True, required=False)
     image_urls = serializers.ListField(
         child=serializers.CharField(max_length=500),
         required=False,
@@ -102,9 +131,18 @@ class ConsultSerializer(serializers.Serializer):
     def validate_image_urls(self, value):
         return value or []
 
+    def validate(self, attrs):
+        message = (attrs.get("message") or "").strip()
+        image_urls = attrs.get("image_urls") or []
+        if not message and not image_urls:
+            raise serializers.ValidationError("请描述问题或上传图片")
+        attrs["message"] = message
+        attrs["image_urls"] = image_urls
+        return attrs
+
 
 class ConversationMessageCreateSerializer(serializers.Serializer):
-    message = serializers.CharField(max_length=4000, allow_blank=False)
+    message = serializers.CharField(max_length=4000, allow_blank=True, required=False)
     image_urls = serializers.ListField(
         child=serializers.CharField(max_length=500),
         required=False,
@@ -113,3 +151,12 @@ class ConversationMessageCreateSerializer(serializers.Serializer):
 
     def validate_image_urls(self, value):
         return value or []
+
+    def validate(self, attrs):
+        message = (attrs.get("message") or "").strip()
+        image_urls = attrs.get("image_urls") or []
+        if not message and not image_urls:
+            raise serializers.ValidationError("请描述问题或上传图片")
+        attrs["message"] = message
+        attrs["image_urls"] = image_urls
+        return attrs

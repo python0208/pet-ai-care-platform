@@ -4,15 +4,15 @@
       <view class="hero-row">
         <view>
           <view class="title-row">
-            <text class="page-title">AI健康咨询</text>
+            <text class="page-title">AI养宠助手</text>
             <image src="/static/icons/png/ai_robot.png" mode="aspectFit" />
           </view>
-          <text class="page-subtitle">结合宠物档案，获取症状初步分析与护理建议</text>
+          <text class="page-subtitle">结合宠物档案，回答养护问题，整理待确认记录</text>
         </view>
       </view>
 
       <view class="notice-card">
-        <text>本结果仅供养宠护理参考，不能替代专业兽医诊断。</text>
+        <text>健康相关建议仅供养宠护理参考，不能替代专业兽医诊断。</text>
       </view>
 
       <view v-if="loading" class="state-card">
@@ -60,14 +60,17 @@
           <view class="section-head">
             <text class="section-title">快捷问题</text>
           </view>
-          <view class="quick-list">
-            <view
-              v-for="item in quickQuestions"
-              :key="item"
-              class="quick-chip"
-              @tap="startConsult(item)"
-            >
-              <text>{{ item }}</text>
+          <view v-for="group in quickGroups" :key="group.title" class="quick-group">
+            <text class="quick-group-title">{{ group.title }}</text>
+            <view class="quick-list">
+              <view
+                v-for="item in group.items"
+                :key="item"
+                class="quick-chip"
+                @tap="startConsult(item)"
+              >
+                <text>{{ item }}</text>
+              </view>
             </view>
           </view>
         </view>
@@ -116,7 +119,11 @@ const pets = ref<Pet[]>([]);
 const conversations = ref<AIConversation[]>([]);
 const selectedPetId = ref<number | null>(null);
 
-const quickQuestions = ["呕吐怎么办", "拉稀怎么办", "不吃饭怎么办", "皮肤瘙痒怎么办"];
+const quickGroups = [
+  { title: "健康咨询", items: ["呕吐怎么办", "拉稀怎么办", "不吃饭怎么办", "皮肤瘙痒怎么办"] },
+  { title: "日常养护", items: ["今天吃多少合适？", "怎么给猫换粮？", "多久洗一次澡？", "晚上太活跃怎么办？"] },
+  { title: "档案记录", items: ["记录豆豆今天体重 4.8kg", "记录今天做了体外驱虫", "记录今天接种了疫苗", "记录豆豆对鸡肉过敏"] },
+];
 
 const selectedPet = computed(() => pets.value.find((pet) => pet.id === selectedPetId.value) || null);
 
@@ -398,6 +405,18 @@ function dateLabel(value: string) {
   display: flex;
   flex-wrap: wrap;
   gap: 16rpx;
+}
+
+.quick-group {
+  margin-top: 16rpx;
+}
+
+.quick-group-title {
+  display: block;
+  margin-bottom: 12rpx;
+  color: #10172d;
+  font-size: 24rpx;
+  font-weight: 900;
 }
 
 .quick-chip {

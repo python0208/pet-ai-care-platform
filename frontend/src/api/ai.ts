@@ -2,6 +2,7 @@ import { request } from "@/api/request";
 import type {
   AIConsultPayload,
   AIConsultResponse,
+  AIActionDraft,
   AIConversation,
   AIMessage,
 } from "@/types/ai";
@@ -26,6 +27,10 @@ export function getConversationMessages(id: number | string) {
   return request<AIMessage[]>(`/ai/conversations/${id}/messages/`);
 }
 
+export function getConversationActionDrafts(id: number | string) {
+  return request<AIActionDraft[]>(`/ai/conversations/${id}/action-drafts/`);
+}
+
 export function sendConversationMessage(
   id: number | string,
   data: { message: string; image_urls?: string[] },
@@ -48,6 +53,20 @@ export function consultAI(data: AIConsultPayload) {
 export function deleteConversation(id: number | string) {
   return request<Record<string, never>>(`/ai/conversations/${id}/`, {
     method: "DELETE",
+    loading: true,
+  });
+}
+
+export function confirmActionDraft(id: number | string) {
+  return request<AIActionDraft>(`/ai/action-drafts/${id}/confirm/`, {
+    method: "POST",
+    loading: true,
+  });
+}
+
+export function cancelActionDraft(id: number | string) {
+  return request<AIActionDraft>(`/ai/action-drafts/${id}/cancel/`, {
+    method: "POST",
     loading: true,
   });
 }

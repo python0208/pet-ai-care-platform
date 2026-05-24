@@ -399,7 +399,7 @@ AI_MAX_TOKENS=1200
 ```text
 用户选择宠物
        |
-输入症状 / 上传图片
+输入养护问题、症状、档案记录内容 / 上传图片
        |
 后端读取宠物档案
        |
@@ -411,12 +411,19 @@ AI_MAX_TOKENS=1200
        |
 解析结构化结果
        |
-保存 AIMessage 和 AIConsultationResult
+保存 AIMessage、AIConsultationResult 和 AIActionDraft
        |
 返回前端展示
 ```
 
 AI 咨询结果必须包含固定免责声明，仅供养宠护理参考，不能替代专业兽医诊断；所有会话、消息、结构化结果都按 `request.user` 隔离。
+
+Phase 3.1 扩展为“AI 养宠助手”：
+
+1. 日常养护问答直接返回自然语言 `reply`。
+2. 健康咨询返回 `health_result`，保留免责声明和就医风险提示。
+3. 档案记录意图返回 `AIActionDraft`，用户确认后后端再写入体重记录或健康记录。
+4. 模型不能直接写数据库，真实写库必须经过权限校验。
 
 ### 7.4 AI 输出结构
 
@@ -430,6 +437,18 @@ AI 咨询结果必须包含固定免责声明，仅供养宠护理参考，不�
   "warning_signs": [],
   "questions_to_ask": [],
   "disclaimer": "本结果仅供养宠护理参考，不能替代兽医诊断。"
+}
+```
+
+Phase 3.1 新结构：
+
+```json
+{
+  "mode": "daily_care|health_consultation|record_intent|mixed|unknown",
+  "reply": "给用户看的回复",
+  "health_result": {},
+  "action_drafts": [],
+  "questions_to_ask": []
 }
 ```
 

@@ -1,17 +1,26 @@
 from rest_framework import permissions, status
 from rest_framework.views import APIView
 
-from apps.ai_chat.models import AIConversation
+from rest_framework import serializers
+
+from apps.ai_chat.models import AIActionDraft, AIConversation
 from apps.ai_chat.providers.base import AIProviderError
 from apps.ai_chat.serializers import (
     AIConversationCreateSerializer,
     AIConversationSerializer,
+    AIActionDraftSerializer,
     AIMessageSerializer,
     ConsultationResultSerializer,
     ConsultSerializer,
     ConversationMessageCreateSerializer,
 )
-from apps.ai_chat.services import consult_pet_health, get_owned_conversation
+from apps.ai_chat.services import (
+    cancel_action_draft,
+    confirm_action_draft,
+    consult_pet_health,
+    get_owned_action_draft,
+    get_owned_conversation,
+)
 from apps.common.responses import error_response, success_response
 
 
@@ -79,6 +88,44 @@ class AIConversationMessagesView(APIView):
         )
 
 
+class AIConversationActionDraftsView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, pk):
+        conversation = get_owned_conversation(request.user, pk)
+        drafts = conversation.action_drafts.filter(user=request.user).select_related("pet")
+        return success_response(AIActionDraftSerializer(drafts, many=True).data)
+
+
+class AIActionDraftConfirmView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, pk):
+        draft = get_owned_action_draft(request.user, pk)
+        try:
+            draft = confirm_action_draft(request.user, draft)
+        except PermissionError:
+            return error_response(code=40301, message="无权限", status=status.HTTP_403_FORBIDDEN)
+        except (ValueError, serializers.ValidationError) as exc:
+            message = getattr(exc, "detail", None) or str(exc)
+            return error_response(code=40901, message=str(message), status=status.HTTP_409_CONFLICT)
+        return success_response(AIActionDraftSerializer(draft).data)
+
+
+class AIActionDraftCancelView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, pk):
+        draft = get_owned_action_draft(request.user, pk)
+        try:
+            draft = cancel_action_draft(request.user, draft)
+        except PermissionError:
+            return error_response(code=40301, message="无权限", status=status.HTTP_403_FORBIDDEN)
+        except ValueError as exc:
+            return error_response(code=40901, message=str(exc), status=status.HTTP_409_CONFLICT)
+        return success_response(AIActionDraftSerializer(draft).data)
+
+
 class AIConsultView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
@@ -115,6 +162,15 @@ def run_consult(request, pet_id, message, image_urls, conversation_id=None):
             "conversation_id": payload.conversation.id,
             "message_id": payload.assistant_message.id,
             "reply": payload.reply,
+            "mode": payload.mode,
+            "health_result": (
+                ConsultationResultSerializer(payload.result).data
+                if payload.health_result
+                else None
+            ),
+            "action_drafts": AIActionDraftSerializer(payload.action_drafts, many=True).data,
+            "questions_to_ask": payload.questions_to_ask,
+            "disclaimer": payload.disclaimer,
             "result": ConsultationResultSerializer(payload.result).data,
         }
     )

@@ -491,9 +491,11 @@ frontend/src/static/images/default-pet-avatar.svg
 
 ---
 
-## 5. AI 健康咨询 API
+## 5. AI 养宠助手 API
 
 本组接口均需要 JWT 登录态。用户只能查看自己的 AI 会话，只能选择自己的宠物发起咨询。AI 调用由后端统一完成，前端不接触 `AI_API_KEY`。
+
+AI 角色为“AI 养宠助手”，支持日常养护问答、健康咨询和档案记录辅助。模型不能直接写数据库；如果识别到记录意图，后端只保存 `AIActionDraft`，用户确认后才执行写入。
 
 当前默认接入：
 
@@ -610,6 +612,18 @@ AI_MODEL=doubao-seed-2-0-mini-260428
     "conversation_id": 10,
     "message_id": 22,
     "reply": "根据你的描述...",
+    "mode": "health_consultation",
+    "health_result": {
+      "risk_level": "medium",
+      "summary": "宠物出现腹泻症状，当前精神尚可。",
+      "possible_causes": ["饮食变化", "肠胃不适", "寄生虫或感染可能"],
+      "home_care": ["观察精神和食欲", "保证饮水", "暂时避免更换食物"],
+      "need_vet": true,
+      "warning_signs": ["持续腹泻超过24-48小时", "便血", "精神明显变差"],
+      "questions_to_ask": ["是否有呕吐？", "是否更换过食物？"],
+      "disclaimer": "本结果由 AI 根据你提供的信息生成，仅供养宠护理参考，不能替代专业兽医诊断。如宠物出现持续呕吐、呼吸困难、抽搐、大量出血、精神极差、误食毒物等情况，请立即联系线下宠物医院。"
+    },
+    "action_drafts": [],
     "result": {
       "risk_level": "medium",
       "summary": "宠物出现腹泻症状，当前精神尚可。",
@@ -623,6 +637,27 @@ AI_MODEL=doubao-seed-2-0-mini-260428
   }
 }
 ```
+
+`mode` 可能为 `daily_care`、`health_consultation`、`record_intent`、`mixed`、`unknown`。为兼容旧前端，响应仍保留 `result` 字段；新前端优先读取 `health_result` 和 `action_drafts`。
+
+### GET /api/ai/conversations/{id}/action-drafts/
+
+获取某会话下的动作草稿。
+
+### POST /api/ai/action-drafts/{id}/confirm/
+
+确认执行动作草稿。后端会再次校验 `request.user` 与宠物归属。
+
+支持：
+
+```text
+create_weight_record
+create_health_record
+```
+
+### POST /api/ai/action-drafts/{id}/cancel/
+
+取消待确认动作草稿。已保存的动作不能重复执行，也不能取消。
 
 ---
 

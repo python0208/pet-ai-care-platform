@@ -129,18 +129,31 @@
 
 ### Phase 3：AI 健康咨询
 
-状态：未完成，下一窗口应从这里开始。
+状态：已完成并提交。
 
 当前真实状态：
 
-- 尚未创建 `apps/ai_chat/`。
-- 尚未实现 `AIConversation`、`AIMessage`、`AIConsultationResult`、`PromptTemplate`。
-- 尚未实现 OpenAI-compatible Provider。
-- 尚未接入火山方舟 Doubao。
-- 尚未配置 `doubao-seed-2-0-mini-260428` 的真实调用。
-- 尚未实现 AI 咨询接口。
-- 前端 `frontend/src/pages/ai/index.vue` 仍是占位页，只做登录态检查和入口展示。
-- 尚未实现风险等级卡片、宠物上下文注入、AI 聊天流、固定智能体提示词。
+- 已创建 `apps/ai_chat/`。
+- 已实现 `AIConversation`、`AIMessage`、`AIConsultationResult`、`PromptTemplate`。
+- 已实现 `AIProviderBase`、`OpenAICompatibleProvider`、`MockAIProvider` 和 `ProviderFactory`。
+- 已接入火山方舟 Doubao，默认模型 `doubao-seed-2-0-mini-260428`。
+- 已实现 `/api/ai/consult/`、会话列表、会话消息接口。
+- 已实现宠物档案上下文注入、结构化 JSON 解析和 fallback。
+- 前端已实现 AI 会话入口、聊天页、风险等级卡片、免责声明。
+
+### Phase 3.1：AI 聊天体验优化 + 养宠助手能力扩展 + 档案记录动作草稿
+
+状态：本轮进行中，未提交。
+
+已完成内容：
+
+- AI 角色从健康咨询助手升级为 AI 养宠助手。
+- 支持日常养护问答、健康咨询和档案记录意图识别。
+- 新增 `AIActionDraft` 模型和迁移。
+- 新增动作草稿列表、确认、取消接口。
+- 确认动作草稿后可写入 `WeightRecord` 或 `HealthRecord`。
+- 后端测试覆盖动作草稿权限、重复执行、取消、非法 payload、图片 URL 保存等场景。
+- 前端聊天页优化布局、图片消息展示、历史图片展示和动作确认卡片。
 
 下一窗口如果执行 Phase 3，应使用以下规划信息：
 

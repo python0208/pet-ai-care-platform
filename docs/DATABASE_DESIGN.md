@@ -264,6 +264,38 @@ updated_at  datetime
 
 ---
 
+## 4.5 AIActionDraft
+
+AI 动作草稿表。
+
+```text
+id              bigint
+user_id         fk users.User
+pet_id          fk pets.Pet
+conversation_id fk ai_chat.AIConversation
+source_message_id fk ai_chat.AIMessage, nullable
+action_type     varchar(64)  # create_weight_record/create_health_record
+display_title   varchar(128)
+confirm_text    varchar(255)
+payload         json
+status          varchar(32)  # pending/confirmed/cancelled/executed/failed
+result_ref_type varchar(64)
+result_ref_id   bigint, nullable
+error_message   varchar(255)
+created_at      datetime
+updated_at      datetime
+executed_at     datetime, nullable
+```
+
+规则：
+
+- 模型只能生成动作草稿，不能直接写数据库。
+- 用户确认后，后端再次以 `request.user` 校验宠物归属。
+- 已 executed 的草稿不能重复执行，cancelled 的草稿不能执行。
+- 当前支持写入体重记录和健康记录。
+
+---
+
 ## 5. services app
 
 ## 5.1 ServiceProvider

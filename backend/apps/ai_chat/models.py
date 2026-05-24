@@ -122,6 +122,73 @@ class AIConsultationResult(models.Model):
         return f"{self.conversation_id}-{self.risk_level}"
 
 
+class AIActionDraft(TimeStampedModel):
+    class ActionType(models.TextChoices):
+        CREATE_WEIGHT_RECORD = "create_weight_record", "创建体重记录"
+        CREATE_HEALTH_RECORD = "create_health_record", "创建健康记录"
+
+    class Status(models.TextChoices):
+        PENDING = "pending", "待确认"
+        CONFIRMED = "confirmed", "已确认"
+        CANCELLED = "cancelled", "已取消"
+        EXECUTED = "executed", "已执行"
+        FAILED = "failed", "执行失败"
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name="用户",
+        related_name="ai_action_drafts",
+        on_delete=models.CASCADE,
+    )
+    pet = models.ForeignKey(
+        Pet,
+        verbose_name="宠物",
+        related_name="ai_action_drafts",
+        on_delete=models.CASCADE,
+    )
+    conversation = models.ForeignKey(
+        AIConversation,
+        verbose_name="会话",
+        related_name="action_drafts",
+        on_delete=models.CASCADE,
+    )
+    source_message = models.ForeignKey(
+        AIMessage,
+        verbose_name="来源消息",
+        related_name="action_drafts",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
+    action_type = models.CharField("动作类型", max_length=64, choices=ActionType.choices)
+    display_title = models.CharField("展示标题", max_length=128)
+    confirm_text = models.CharField("确认文案", max_length=255)
+    payload = models.JSONField("动作载荷", default=dict, blank=True)
+    status = models.CharField(
+        "状态",
+        max_length=32,
+        choices=Status.choices,
+        default=Status.PENDING,
+    )
+    result_ref_type = models.CharField("结果资源类型", max_length=64, blank=True)
+    result_ref_id = models.PositiveBigIntegerField("结果资源 ID", null=True, blank=True)
+    error_message = models.CharField("失败原因", max_length=255, blank=True)
+    executed_at = models.DateTimeField("执行时间", null=True, blank=True)
+
+    class Meta:
+        verbose_name = "AI 动作草稿"
+        verbose_name_plural = "AI 动作草稿"
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["user", "status"], name="ai_draft_user_status_idx"),
+            models.Index(fields=["conversation"], name="ai_draft_conv_idx"),
+            models.Index(fields=["pet"], name="ai_draft_pet_idx"),
+        ]
+
+    def __str__(self):
+        return f"{self.user_id}-{self.action_type}-{self.status}"
+
+
 class PromptTemplate(TimeStampedModel):
     name = models.CharField("模板名称", max_length=128)
     scene = models.CharField("场景", max_length=64)
