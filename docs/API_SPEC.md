@@ -846,7 +846,7 @@ provider_type=hospital
 
 ## 8. 商城 API
 
-Phase 4.0 当前只实现 Django Admin 商品后台管理与 Excel 批量导入，不提供商城前端商品展示、购物车、订单、支付接口的真实业务实现。
+Phase 4.0 当前实现 Django Admin 商品后台管理与 Excel 批量导入。Phase 4.1 新增用户端商品只读接口和商城页面；购物车、订单、支付接口仍未实现真实业务。
 
 ### Phase 4.0 Admin 商品导入
 
@@ -893,27 +893,91 @@ Excel 固定字段：
 
 ### GET /api/shop/categories/
 
-商品分类。
+商品分类。允许未登录读取，只返回 `is_active=true` 的分类。
+
+响应：
+
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": [
+    {
+      "id": 1,
+      "name": "猫咪主粮",
+      "parent": null,
+      "sort_order": 0,
+      "is_active": true
+    }
+  ]
+}
+```
 
 ---
 
 ### GET /api/shop/products/
 
-商品列表。
+商品列表。允许未登录读取，只返回 `status=active` 的商品，不返回 `purchase_price`。
 
 查询参数：
 
 ```text
 category_id=1
-keyword=猫粮
-status=on_sale
+q=猫粮
+barcode=6922298207227
+page=1
+page_size=20
+sort=price_asc|price_desc|newest
 ```
+
+分页响应 `data` 包含：
+
+```text
+count          # 总商品数
+page           # 当前页
+page_size      # 当前每页数量
+total_pages    # 总页数
+has_next       # 是否还有下一页
+has_previous   # 是否有上一页
+results        # 当前页商品列表
+```
+
+响应字段包含：
+
+```text
+id
+name
+unit
+spec
+barcode
+category
+retail_price
+weight
+shelf_life_months
+cover_image
+cover_image_url
+total_stock
+stock_status  # in_stock/out_of_stock
+status
+```
+
+`cover_image_url` 是前端可直接访问的完整图片 URL。后端兼容 `products/<barcode>.jpg`、`/media/products/<barcode>.jpg`、`media/products/<barcode>.jpg`、`.jpeg`、`.png`、`.webp` 和完整 URL；如果 `cover_image` 为空或指向文件不存在，会按 `media/products/<barcode>.jpg|jpeg|png|webp` 顺序查找兜底。仍未找到时返回空字符串，前端使用 `frontend/src/static/images/default-product.svg`。
 
 ---
 
 ### GET /api/shop/products/{id}/
 
 商品详情。
+
+只返回上架商品，不返回进货价。除列表字段外，详情额外返回：
+
+```text
+inventories
+created_at
+updated_at
+```
+
+`inventories` 包含 `store_code`、`store_display_name`、`stock_quantity`。当前仅展示库存，不做库存扣减。
 
 ---
 

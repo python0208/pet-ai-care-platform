@@ -143,6 +143,8 @@ frontend/src/static/images/default-pet-avatar.svg
 
 Phase 4.0 当前只实现商品后台管理与 Excel 批量导入，不开发商城前端商品展示、购物车、订单、支付、优惠券或物流。Excel 字段固定为：图片、名称、单位、进货价、规格、零售价、条码、重量、直营店序号、分类、保质期（月）、当前库存。条码作为商品唯一识别字段；库存写入 `ProductInventory`，不放入 `Product`。直营店序号允许为空，空值导入默认库存，内部 `store_code=DEFAULT`，后台展示为“默认库存”。商品图片从 Excel 嵌入图提取并保存到 `media/products/`，数据库只保存图片路径，`media/` 不进入 Git。
 
+Phase 4.1 已进入用户端商品展示：后端提供 `GET /api/shop/categories/`、`GET /api/shop/products/`、`GET /api/shop/products/{id}/` 只读接口，只返回 `status=active` 的商品，不返回进货价。商品图片通过 `cover_image_url` 返回前端可访问 URL。前端底部 TabBar 第四项从“服务”改为“商城”，服务页面文件保留但不作为主入口；商城页参考 `docs/page/shop.png`，运行时装饰图复制到 `frontend/src/static/images/shop/`。当前仍不做购物车、订单、支付、库存扣减。
+
 ### 3.6 支付
 
 - 统一支付单

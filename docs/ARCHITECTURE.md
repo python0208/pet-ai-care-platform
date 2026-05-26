@@ -246,6 +246,16 @@ apps/common/
 
 Phase 4.0 先实现 Django Admin 商品后台管理与 Excel 批量导入。导入服务位于 `apps/shop/services/`，Admin 只负责上传文件和展示结果。Excel 原始文件保存到 `media/imports/products/`，商品图片保存到 `media/products/`，数据库只保存图片路径，不保存图片二进制。`barcode` 是商品唯一识别字段；库存通过 `ProductInventory` 与商品分表管理。直营店序号为空时统一归入默认库存，内部 `store_code=DEFAULT`。
 
+Phase 4.1 增加用户端只读商品接口：
+
+```text
+GET /api/shop/categories/
+GET /api/shop/products/
+GET /api/shop/products/{id}/
+```
+
+用户端接口只返回上架商品，不返回进货价、导入批次或导入明细。商品图片通过 serializer 将 `cover_image` 转换为 `cover_image_url`，前端不接触 `MEDIA_ROOT` 或本地文件系统路径。前端商城页位于 `pages/shop/index`，商品详情页位于 `pages/shop/detail`；底部 TabBar 第四项为商城，服务页暂时保留但不是主入口。
+
 ---
 
 ## 4.7 payments

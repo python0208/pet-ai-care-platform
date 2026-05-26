@@ -563,6 +563,70 @@ AI_MAX_TOKENS=1200
 
 完成商品浏览、购物车、地址、订单创建。
 
+---
+
+## Phase 4.1：商城商品展示接口与前端商城页面
+
+### 目标
+
+基于 Phase 4.0 已导入的商品数据，提供用户端商品只读接口和移动端商城展示页面。本阶段不开发购物车、订单、支付、优惠券、物流、售后、评价或库存扣减。
+
+### 后端任务
+
+1. 实现 `GET /api/shop/categories/`，只返回启用分类。
+2. 实现 `GET /api/shop/products/`，只返回 `status=active` 商品。
+3. 商品列表支持 `q`、`category_id`、`barcode`、分页和价格/最新排序。
+4. 实现 `GET /api/shop/products/{id}/`。
+5. 商品列表和详情返回 `cover_image_url`、`total_stock`、`stock_status`。
+6. 用户端接口不返回 `purchase_price`、导入批次或导入明细。
+7. 普通用户不能通过商品 API 创建、修改、删除商品。
+
+### 前端任务
+
+1. TabBar 第四项从“服务”改为“商城”，页面路径为 `pages/shop/index`。
+2. 服务页面保留，但暂不作为主 Tab 入口。
+3. 新增 `frontend/src/api/shop.ts`。
+4. 新增商城首页 `pages/shop/index`，参考 `docs/page/shop.png`。
+5. 新增商品详情页 `pages/shop/detail`。
+6. 将 `shop_page/header.png` 和 `shop_page/center.png` 复制到 `frontend/src/static/images/shop/`。
+7. 新增默认商品图 `frontend/src/static/images/default-product.svg`。
+8. 首页“精选商城”接入真实商品数据，接口失败不影响首页其他模块。
+
+### Phase 4.1.1：商城页面 UI 体验修复与商品图片显示修复
+
+目标是在不开发购物车、订单、支付、优惠券、物流和售后的前提下，修复商城真实图片展示和移动端体验问题。
+
+1. 后端 `cover_image_url` 兼容 `products/xxx`、`/media/products/xxx`、完整 URL，并避免向前端暴露本地文件系统路径。
+2. 商品列表、商品详情和首页精选商城优先使用 `cover_image_url`，图片加载失败时回退 `default-product.svg`。
+3. 商城商品卡片优化为紧凑两列布局，商品名最多两行省略，价格和有货/缺货标签底部对齐。
+4. 商城页滚动容器增加 TabBar 与 safe area 底部留白，避免最后一行商品被底部导航遮挡。
+5. 顶部 Header、精选好物 Banner、分类 Tab、搜索框和扫码占位入口按 `docs/page/shop.png` 继续精修。
+6. 补充商品加载中、接口失败、搜索无结果、分类加载失败和图片加载失败 fallback 状态。
+7. 当前阶段仍不做真实购物车、下单、支付、售后或库存扣减。
+
+### Phase 4.1.2：商城列表分页加载更多与商品图片路径修复
+
+目标是让商城可以浏览超过第一页的商品，并稳定展示后台导入到 `media/products/` 的条码图片。
+
+1. `GET /api/shop/products/` 支持 `page`、`page_size`，分页响应包含 `count`、`page`、`page_size`、`total_pages`、`has_next`、`has_previous` 和 `results`。
+2. 商城首页首次加载第一页，滚动到底部根据 `has_next` 加载下一页并追加到列表。
+3. 下拉刷新、分类切换、搜索、清空搜索时重置 `page=1`，清空旧列表并重新请求。
+4. 加载更多时展示底部 loading，失败时可点击重试，没有更多时展示“没有更多商品了”。
+5. 商品图片 URL 兼容 `products/<barcode>.jpg`、`/media/products/<barcode>.jpg`、`media/products/<barcode>.jpg`、`.jpeg`、`.png`、`.webp` 和完整 URL。
+6. 当 `cover_image` 为空或文件不存在时，后端按 `media/products/<barcode>.jpg|jpeg|png|webp` 查找兜底；仍未找到则返回空，前端使用默认商品图。
+7. 前端统一通过 `resolveProductImage()` 处理商品图，并将 localhost/127.0.0.1 media 图片地址改写到当前 API_ORIGIN，避免移动端访问本机回环地址失败。
+8. 当前阶段仍不做购物车、订单、支付、物流、售后或库存扣减。
+
+### 验收标准
+
+1. 商品分类、列表、详情接口可用。
+2. 商品图片 URL 前端可展示。
+3. 商品列表和详情不显示进货价。
+4. 商城 Tab 可进入商城页面。
+5. 分类 Tab、搜索、详情跳转可用。
+6. 加入购物车按钮只提示开发中。
+7. 不影响首页、档案、AI 咨询、我的页面。
+
 ### 后端任务
 
 1. 创建 `apps/shop/`。

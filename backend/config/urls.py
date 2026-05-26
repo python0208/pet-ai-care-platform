@@ -10,6 +10,7 @@ urlpatterns = [
     path("api/", include("apps.pets.urls")),
     path("api/", include("apps.files.urls")),
     path("api/", include("apps.ai_chat.urls")),
+    path("api/", include("apps.shop.urls")),
 ]
 
 if settings.DEBUG:

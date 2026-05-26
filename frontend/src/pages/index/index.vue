@@ -121,26 +121,32 @@
             <image src="/static/icons/png/shop_bag.png" mode="aspectFit" />
             <text class="section-title">精选商城</text>
           </view>
-          <view class="more-link">
+          <view class="more-link" @tap="goShop">
             <text>更多</text>
             <image src="/static/icons/png/chevron_right.png" mode="aspectFit" />
           </view>
         </view>
         <view class="product-row">
-          <view v-for="product in products" :key="product.name" class="product-card">
+          <view
+            v-for="product in products"
+            :key="product.id"
+            class="product-card"
+            @tap="goProductDetail(product.id)"
+          >
             <view class="product-image" :class="product.theme">
-              <image :src="product.icon" mode="aspectFit" />
+              <image :src="product.image" mode="aspectFit" @error="markProductImageError(product.id)" />
             </view>
             <text class="product-name">{{ product.name }}</text>
-            <text class="product-desc">{{ product.desc }}</text>
+            <text class="product-desc">{{ product.spec || "精选好物" }}</text>
             <view class="price-row">
-              <text class="price">¥{{ product.price }}</text>
+              <text class="price">¥{{ formatPrice(product.price) }}</text>
               <button class="cart-button" hover-class="button-tap">
                 <image src="/static/icons/png/cart.png" mode="aspectFit" />
               </button>
             </view>
           </view>
         </view>
+        <view v-if="!products.length" class="shop-empty">暂无精选商品</view>
       </view>
     </view>
   </scroll-view>
@@ -152,13 +158,27 @@ import { computed, onMounted, ref } from "vue";
 
 import { getPet, getPets } from "@/api/pets";
 import { getHealthStatus, resolveMediaUrl } from "@/api/request";
+import { getProducts } from "@/api/shop";
 import { useAppStore } from "@/stores/app";
 import type { Pet, PetDetail, PetReminder } from "@/types/pet";
+import type { Product } from "@/types/shop";
+import { DEFAULT_PRODUCT_IMAGE, resolveProductImage } from "@/utils/productImage";
 
 const appStore = useAppStore();
 const healthStatus = ref<"checking" | "ok" | "error">("checking");
 const homePet = ref<Pet | null>(null);
 const homePetDetail = ref<PetDetail | null>(null);
+const products = ref<
+  Array<{
+    id: number;
+    name: string;
+    spec: string;
+    price: string;
+    image: string;
+    theme: string;
+  }>
+>([]);
+const failedProductImages = ref<Set<number>>(new Set());
 
 const reminderCards = computed(() => [
   {
@@ -199,36 +219,12 @@ const quickEntries = [
   {
     title: "附近医院",
     icon: "/static/icons/png/location_hospital.png",
-    action: () => uni.switchTab({ url: "/pages/services/index" }),
+    action: () => uni.navigateTo({ url: "/pages/services/index" }),
   },
   {
     title: "商城",
     icon: "/static/icons/png/shop_bag.png",
-    action: () => uni.showToast({ title: "商城模块后续开放", icon: "none" }),
-  },
-];
-
-const products = [
-  {
-    name: "皇家猫粮",
-    desc: "成猫全价粮 2kg",
-    price: "168.00",
-    icon: "/static/icons/png/paw.png",
-    theme: "food-pack",
-  },
-  {
-    name: "冻干零食",
-    desc: "鸡肉冻干 80g",
-    price: "39.90",
-    icon: "/static/icons/png/shop_bag.png",
-    theme: "snack-jar",
-  },
-  {
-    name: "逗猫棒套装",
-    desc: "羽毛+铃铛",
-    price: "29.90",
-    icon: "/static/icons/png/pet_profile.png",
-    theme: "toy-set",
+    action: () => uni.switchTab({ url: "/pages/shop/index" }),
   },
 ];
 
@@ -267,6 +263,7 @@ const vaccineReminderText = computed(() => formatReminder("vaccine"));
 
 onShow(async () => {
   await loadHomePet();
+  await loadFeaturedProducts();
 });
 
 onMounted(async () => {
@@ -300,6 +297,22 @@ async function loadHomePet() {
   }
 }
 
+async function loadFeaturedProducts() {
+  try {
+    const response = await getProducts({ page_size: 3 });
+    products.value = response.data.results.map((product: Product, index) => ({
+      id: product.id,
+      name: product.name,
+      spec: product.spec || product.unit,
+      price: product.retail_price,
+      image: resolveProductImage(product),
+      theme: ["food-pack", "snack-jar", "toy-set"][index % 3],
+    }));
+  } catch (error) {
+    products.value = [];
+  }
+}
+
 function goAddPet() {
   uni.navigateTo({ url: "/pages/pets/edit" });
 }
@@ -310,6 +323,25 @@ function handlePetCardTap() {
     return;
   }
   goAddPet();
+}
+
+function markProductImageError(id: number) {
+  failedProductImages.value = new Set([...failedProductImages.value, id]);
+  products.value = products.value.map((product) =>
+    product.id === id ? { ...product, image: DEFAULT_PRODUCT_IMAGE } : product,
+  );
+}
+
+function formatPrice(price: string) {
+  return Number(price || 0).toFixed(2);
+}
+
+function goShop() {
+  uni.switchTab({ url: "/pages/shop/index" });
+}
+
+function goProductDetail(id: number) {
+  uni.navigateTo({ url: `/pages/shop/detail?id=${id}` });
 }
 
 function formatReminder(type: "vaccine" | "deworm") {
@@ -846,6 +878,14 @@ function speciesLabel(species: string) {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 14rpx;
   margin-top: 22rpx;
+}
+
+.shop-empty {
+  margin-top: 18rpx;
+  padding: 28rpx 0 8rpx;
+  color: #7d8799;
+  font-size: 24rpx;
+  text-align: center;
 }
 
 .product-card {

@@ -67,6 +67,18 @@
       }
     },
     {
+      "path": "pages/shop/index",
+      "style": {
+        "navigationBarTitleText": "商城"
+      }
+    },
+    {
+      "path": "pages/shop/detail",
+      "style": {
+        "navigationBarTitleText": "商品详情"
+      }
+    },
+    {
       "path": "pages/user/index",
       "style": {
         "navigationBarTitleText": "我的"
@@ -98,10 +110,10 @@
         "selectedIconPath": "static/icons/ai/tab_ai_active.png"
       },
       {
-        "pagePath": "pages/services/index",
-        "text": "服务",
-        "iconPath": "static/icons/ai/tab_service.png",
-        "selectedIconPath": "static/icons/ai/tab_service.png"
+        "pagePath": "pages/shop/index",
+        "text": "商城",
+        "iconPath": "static/icons/png/shop_bag.png",
+        "selectedIconPath": "static/icons/png/shop_bag.png"
       },
       {
         "pagePath": "pages/user/index",

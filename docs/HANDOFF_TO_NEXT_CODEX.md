@@ -217,6 +217,48 @@
 - 行级失败写入 `ProductImportRow`，不影响其他行继续导入。
 - 本轮不开发商城前端、购物车、订单、支付、优惠券、物流。
 
+### Phase 4.1：商城商品展示接口与前端商城页面
+
+状态：本轮进行中，未提交。
+
+本轮目标：
+
+- 基于已导入商品数据实现用户端只读接口：`GET /api/shop/categories/`、`GET /api/shop/products/`、`GET /api/shop/products/{id}/`。
+- 商品接口只返回启用分类和 `status=active` 商品，不返回进货价、导入批次或导入明细。
+- 商品接口返回 `cover_image_url`、`total_stock`、`stock_status`，前端可直接展示商品图片。
+- 前端新增 `src/api/shop.ts`、`pages/shop/index.vue`、`pages/shop/detail.vue` 和 `types/shop.ts`。
+- TabBar 第四项从“服务”改为“商城”，服务页面保留但不作为主入口。
+- 商城首页参考 `docs/page/shop.png`，资源 `shop_page/header.png`、`shop_page/center.png` 已复制到 `frontend/src/static/images/shop/`。
+- 新增默认商品图 `frontend/src/static/images/default-product.svg`。
+- 首页“精选商城”模块接入真实商品数据，失败或无数据时不影响首页其他模块。
+- 当前仍不做购物车、订单、支付、优惠券、物流、评价、售后或库存扣减。
+
+### Phase 4.1.1：商城页面 UI 体验修复与商品图片显示修复
+
+状态：本轮进行中，未提交。
+
+本轮目标：
+
+- 修复商品真实图片展示：后端 `cover_image_url` 兼容完整 URL、`/media/products/xxx`、`products/xxx` 和误存本地路径时的 `/media/` 截取，前端列表/详情优先使用 `cover_image_url`，失败回退 `default-product.svg`。
+- 优化商城商品卡片：两列网格更紧凑，图片区浅蓝白背景，商品名两行省略，价格红橙突出，有货/缺货标签底部对齐。
+- 修复底部 TabBar 遮挡：商城滚动内容增加 `tabbar + safe-area + 额外空间` 的底部留白，最后一行商品完整可见。
+- 优化 Header、精选好物 Banner、分类 Tab、搜索框和扫码占位入口，保持接近 `docs/page/shop.png` 的浅蓝白风格。
+- 补充加载、接口失败、搜索无结果、分类失败和图片失败 fallback 状态。
+- 当前仍不开发购物车、订单、支付、优惠券、物流、评价、售后或库存扣减。
+
+### Phase 4.1.2：商城列表分页加载更多与商品图片路径修复
+
+状态：本轮进行中，未提交。
+
+本轮目标：
+
+- 商品列表接口分页响应增加 `total_pages`、`has_next`、`has_previous`，前端根据 `has_next` 滚动加载更多。
+- 商城首页首次加载第一页；下拉刷新、分类切换、搜索和清空搜索都会清空旧列表并从第一页重新加载。
+- 加载更多时追加商品，底部展示“加载中...”“加载失败，点击重试”“没有更多商品了”。
+- 商品图片路径兼容 `.jpg/.jpeg/.png/.webp`，后端会在 `cover_image` 为空或文件不存在时按 `media/products/<barcode>.*` 查找兜底。
+- 列表、详情和首页精选商城统一使用前端 `resolveProductImage()`；该方法会将后端返回的 localhost/127.0.0.1 media 地址改写到当前 API_ORIGIN，图片失败时回退 `default-product.svg`。
+- 当前仍不开发购物车、订单、支付、优惠券、物流、评价、售后或库存扣减。
+
 下一窗口如果执行 Phase 3，应使用以下规划信息：
 
 - Provider 需要可替换模型。

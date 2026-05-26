@@ -429,6 +429,8 @@ updated_at          datetime
 - Excel 导入时条码不存在则新增商品，条码已存在则更新商品。
 - `cover_image` 只保存图片 URL 或相对路径，不保存图片二进制。
 - 商品库存不放在 Product 表，库存按门店或默认库存放入 ProductInventory。
+- 用户端商品列表和详情只返回 `status=active` 商品，不返回 `purchase_price`。
+- API 层会把 `cover_image` 转换为前端可访问的 `cover_image_url`。
 
 ---
 
