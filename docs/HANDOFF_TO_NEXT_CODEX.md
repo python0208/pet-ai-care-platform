@@ -199,6 +199,24 @@
 - `/api/users/me/` 返回 `has_wechat_bound`、`auth_providers`，微信登录用户不向前端展示内部占位邮箱。
 - 当前仍不做手机号登录、短信验证码、邮箱验证码、商城下单、支付或生活服务预约。
 
+### Phase 4.0：商品后台管理与 Excel 批量导入
+
+状态：本轮进行中，未提交。
+
+本轮目标：
+
+- 创建 `apps/shop/`，先完成商品数据管理基础能力。
+- 新增 `ProductCategory`、`Product`、`ProductInventory`、`ProductImportBatch`、`ProductImportRow`。
+- Django Admin 可管理商品分类、商品、库存、导入批次和导入明细。
+- Admin 增加“商品 Excel 批量导入”入口，仅 staff / superuser 可访问。
+- Excel 字段固定为：图片、名称、单位、进货价、规格、零售价、条码、重量、直营店序号、分类、保质期（月）、当前库存。
+- 条码 `barcode` 作为商品唯一识别字段；条码不存在新增商品，条码已存在更新商品。
+- Product 和 ProductInventory 分表；同一 `product + store_code` 只有一条库存。
+- 直营店序号允许为空，空值导入默认库存，内部 `store_code=DEFAULT`，后台显示“默认库存”。
+- Excel 嵌入图片提取后保存到 `media/products/`，原始 Excel 保存到 `media/imports/products/`，数据库只保存路径。
+- 行级失败写入 `ProductImportRow`，不影响其他行继续导入。
+- 本轮不开发商城前端、购物车、订单、支付、优惠券、物流。
+
 下一窗口如果执行 Phase 3，应使用以下规划信息：
 
 - Provider 需要可替换模型。

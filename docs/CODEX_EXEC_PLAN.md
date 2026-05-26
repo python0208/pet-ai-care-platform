@@ -523,6 +523,40 @@ AI_MAX_TOKENS=1200
 
 ---
 
+## Phase 4.0：商品后台管理与 Excel 批量导入
+
+### 目标
+
+先完成商城模块的数据管理基础能力，供管理员在 Django Admin 中维护商品，并通过 Excel 批量导入商品、库存和商品图片。本阶段不开发商城前端商品展示、购物车、订单、支付、优惠券或物流。
+
+### 后端任务
+
+1. 创建 `apps/shop/`。
+2. 实现 `ProductCategory`、`Product`、`ProductInventory`、`ProductImportBatch`、`ProductImportRow`。
+3. 注册 Django Admin，可管理分类、商品、库存、导入批次和导入明细。
+4. 在 Admin 中增加“商品 Excel 批量导入”入口。
+5. 支持上传 `.xlsx` 文件，字段为：图片、名称、单位、进货价、规格、零售价、条码、重量、直营店序号、分类、保质期（月）、当前库存。
+6. 使用 `openpyxl` 解析 Excel 和嵌入图片。
+7. 商品图片保存到 `media/products/`，原始 Excel 保存到 `media/imports/products/`，数据库只保存路径。
+8. `barcode` 作为商品唯一识别字段，新增或更新 Product。
+9. `Product` 与 `ProductInventory` 分表；同一 `product + store_code` 只有一条库存。
+10. “直营店序号”允许为空，空值归入默认库存，内部 `store_code=DEFAULT`，后台展示“默认库存”。
+11. 行级失败写入 `ProductImportRow`，不影响其他行继续导入。
+
+### 验收标准
+
+1. 后端可启动，数据库迁移成功。
+2. Admin 可看到商品分类、商品、库存、导入批次和导入明细。
+3. staff / superuser 可访问导入入口，普通用户不能访问。
+4. 可以上传 `.xlsx` 并解析商品字段。
+5. 条码不存在时新增商品，条码存在时更新商品。
+6. 当前库存写入 `ProductInventory`。
+7. 直营店序号为空时写入 `DEFAULT` 默认库存，重复导入更新同一条库存。
+8. Excel 嵌入图片保存到 `media/products/`，图片文件不进入 Git。
+9. 本阶段不做购物车、订单、支付。
+
+---
+
 ## Phase 4：商城模块
 
 ### 目标

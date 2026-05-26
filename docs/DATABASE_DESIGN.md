@@ -385,13 +385,13 @@ updated_at      datetime
 
 ## 6. shop app
 
-## 6.1 ShopCategory
+## 6.1 ProductCategory
 
 商品分类表。
 
 ```text
 id          bigint
-name        varchar(64)
+name        varchar(128)
 parent_id   fk self, nullable
 sort_order  int
 is_active   bool
@@ -406,29 +406,111 @@ updated_at  datetime
 商品表。
 
 ```text
-id              bigint
-category_id     fk shop.ShopCategory
-name            varchar(128)
-cover           varchar/url
-images          json
-price           decimal(10,2)
-original_price  decimal(10,2)
-stock           int
-sales_count     int
-description     text
-status          varchar(32)  # draft/on_sale/off_sale
-created_at      datetime
-updated_at      datetime
+id                  bigint
+category_id         fk shop.ProductCategory, nullable
+name                varchar(255)
+unit                varchar(32)
+spec                varchar(128)
+barcode             varchar(64), unique
+purchase_price      decimal(10,2), nullable
+retail_price        decimal(10,2)
+weight              decimal(10,2), nullable
+shelf_life_months   int, nullable
+cover_image         varchar/url
+status              varchar(32)  # draft/active/inactive
+created_at          datetime
+updated_at          datetime
 ```
 
 规则：
 
-- 第一阶段不做 SKU，单商品单价格。
-- 后期可扩展 ProductSku。
+- Phase 4.0 只做商品后台管理与 Excel 批量导入，不做购物车、订单、支付。
+- `barcode` 是商品唯一识别字段，必须用字符串保存，避免长条码精度丢失或前导 0 丢失。
+- Excel 导入时条码不存在则新增商品，条码已存在则更新商品。
+- `cover_image` 只保存图片 URL 或相对路径，不保存图片二进制。
+- 商品库存不放在 Product 表，库存按门店或默认库存放入 ProductInventory。
 
 ---
 
-## 6.3 CartItem
+## 6.3 ProductInventory
+
+商品库存表。
+
+```text
+id                bigint
+product_id        fk shop.Product
+store_code        varchar(64), default="DEFAULT"
+stock_quantity    int
+last_imported_at  datetime, nullable
+remark            varchar(255)
+created_at        datetime
+updated_at        datetime
+```
+
+规则：
+
+- Product 与 ProductInventory 是 1:N。
+- 同一 `product_id + store_code` 只能有一条记录。
+- Excel 中“直营店序号”不是必填；为空时导入到默认库存，内部 `store_code` 保存为 `DEFAULT`。
+- 后台展示 `DEFAULT` 时显示为“默认库存”，避免管理员看到空值。
+- 当前库存为空或非法时，该行导入失败。
+
+---
+
+## 6.4 ProductImportBatch
+
+商品 Excel 导入批次表。每上传一次 Excel 创建一个批次。
+
+```text
+id                    bigint
+file                  file
+original_filename     varchar(255)
+total_rows            int
+success_count         int
+updated_count         int
+failed_count          int
+image_success_count   int
+image_failed_count    int
+status                varchar(32)  # processing/success/failed/partial_success
+created_by_id         fk users.User, nullable
+created_at            datetime
+completed_at          datetime, nullable
+error_message         text
+```
+
+规则：
+
+- 原始 Excel 保存到 `media/imports/products/`，不进入 Git。
+- 导入结果统计新增、更新、失败和图片提取结果。
+- 部分行失败时 status 为 `partial_success`。
+
+---
+
+## 6.5 ProductImportRow
+
+商品 Excel 导入行明细表。
+
+```text
+id             bigint
+batch_id       fk shop.ProductImportBatch
+row_number     int
+product_name   varchar(255)
+barcode        varchar(64)
+status         varchar(32)  # success/updated/failed
+error_message  text
+product_id     fk shop.Product, nullable
+created_at     datetime
+```
+
+规则：
+
+- 每一行都记录导入结果。
+- 某一行失败不影响其他行继续导入。
+- 失败行必须记录明确错误原因。
+
+---
+
+## 6.6 CartItem
 
 购物车表。
 
@@ -449,7 +531,7 @@ updated_at  datetime
 
 ---
 
-## 6.4 Address
+## 6.7 Address
 
 收货地址表。
 
@@ -474,7 +556,7 @@ updated_at  datetime
 
 ---
 
-## 6.5 ShopOrder
+## 6.8 ShopOrder
 
 商城订单表。
 
@@ -503,7 +585,7 @@ updated_at        datetime
 
 ---
 
-## 6.6 ShopOrderItem
+## 6.9 ShopOrderItem
 
 订单明细表。
 

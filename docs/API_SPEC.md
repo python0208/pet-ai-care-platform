@@ -846,6 +846,51 @@ provider_type=hospital
 
 ## 8. 商城 API
 
+Phase 4.0 当前只实现 Django Admin 商品后台管理与 Excel 批量导入，不提供商城前端商品展示、购物车、订单、支付接口的真实业务实现。
+
+### Phase 4.0 Admin 商品导入
+
+入口：
+
+```text
+/admin/shop/productimportbatch/import-excel/
+```
+
+仅 staff / superuser 可访问。上传文件必须是 `.xlsx`。
+
+Excel 固定字段：
+
+```text
+图片
+名称
+单位
+进货价
+规格
+零售价
+条码
+重量
+直营店序号
+分类
+保质期（月）
+当前库存
+```
+
+导入规则：
+
+1. `barcode` 是商品唯一识别字段，使用字符串保存。
+2. 分类不存在时自动创建 `ProductCategory`。
+3. 条码不存在时新增 `Product`，条码已存在时更新 `Product`。
+4. 库存写入 `ProductInventory`，不写入 `Product`。
+5. “直营店序号”允许为空；为空时导入默认库存，内部 `store_code=DEFAULT`，后台展示为“默认库存”。
+6. 当前库存为空或非法时，该行失败。
+7. Excel 嵌入图片会提取到 `media/products/`，数据库只保存图片路径，不保存二进制。
+8. 某一行失败不会影响其他行导入，失败原因写入 `ProductImportRow`。
+9. 原始 Excel 保存到 `media/imports/products/`，`media/` 不进入 Git。
+
+本阶段不实现购物车、订单、支付、优惠券、物流。
+
+---
+
 ### GET /api/shop/categories/
 
 商品分类。

@@ -1,0 +1,78 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+  <div id="content-main">
+    <form method="post" enctype="multipart/form-data" novalidate>
+      {% csrf_token %}
+      <fieldset class="module aligned">
+        <h2>商品 Excel 批量导入</h2>
+        <div class="form-row">
+          {{ form.file.errors }}
+          <label for="{{ form.file.id_for_label }}">选择 .xlsx 文件：</label>
+          {{ form.file }}
+        </div>
+      </fieldset>
+      <div class="submit-row">
+        <input type="submit" value="上传并导入" class="default" />
+      </div>
+    </form>
+
+    <div class="module">
+      <h2>模板字段说明</h2>
+      <p>固定表头：图片、名称、单位、进货价、规格、零售价、条码、重量、直营店序号、分类、保质期（月）、当前库存。</p>
+      <ul>
+        <li>条码作为商品唯一识别，必须为文本或可安全转为文本的数字。</li>
+        <li>直营店序号允许为空，空值会导入到“默认库存”，内部 store_code 为 DEFAULT。</li>
+        <li>商品图片需为 Excel 中嵌入图片，导入后保存到 media/products/，数据库只保存图片路径。</li>
+        <li>某一行失败不会影响其他行导入，失败原因会记录到导入明细。</li>
+      </ul>
+    </div>
+
+    {% if batch %}
+      <div class="module">
+        <h2>导入结果</h2>
+        <table>
+          <tbody>
+            <tr><th>批次 ID</th><td>{{ batch.id }}</td></tr>
+            <tr><th>状态</th><td>{{ batch.get_status_display }}</td></tr>
+            <tr><th>总行数</th><td>{{ batch.total_rows }}</td></tr>
+            <tr><th>新增成功</th><td>{{ batch.success_count }}</td></tr>
+            <tr><th>更新</th><td>{{ batch.updated_count }}</td></tr>
+            <tr><th>失败</th><td>{{ batch.failed_count }}</td></tr>
+            <tr><th>图片成功</th><td>{{ batch.image_success_count }}</td></tr>
+            <tr><th>图片失败</th><td>{{ batch.image_failed_count }}</td></tr>
+            {% if batch.error_message %}
+              <tr><th>整体错误</th><td>{{ batch.error_message }}</td></tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+
+      {% if failed_rows %}
+        <div class="module">
+          <h2>失败行列表</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>行号</th>
+                <th>商品名称</th>
+                <th>条码</th>
+                <th>失败原因</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in failed_rows %}
+                <tr>
+                  <td>{{ row.row_number }}</td>
+                  <td>{{ row.product_name }}</td>
+                  <td>{{ row.barcode }}</td>
+                  <td>{{ row.error_message }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% endif %}
+    {% endif %}
+  </div>
+{% endblock %}

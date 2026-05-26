@@ -113,6 +113,7 @@ Celery
 SimpleJWT
 django-filter
 Pillow
+openpyxl
 httpx / requests
 django-environ
 ```
@@ -234,10 +235,16 @@ apps/common/
 
 - 商品分类
 - 商品
+- 商品库存
+- 商品 Excel 导入批次
+- 商品 Excel 导入明细
+- Excel 嵌入图片提取
 - 购物车
 - 地址
 - 商城订单
 - 订单明细
+
+Phase 4.0 先实现 Django Admin 商品后台管理与 Excel 批量导入。导入服务位于 `apps/shop/services/`，Admin 只负责上传文件和展示结果。Excel 原始文件保存到 `media/imports/products/`，商品图片保存到 `media/products/`，数据库只保存图片路径，不保存图片二进制。`barcode` 是商品唯一识别字段；库存通过 `ProductInventory` 与商品分表管理。直营店序号为空时统一归入默认库存，内部 `store_code=DEFAULT`。
 
 ---
 
